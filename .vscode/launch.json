@@ -1,0 +1,33 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            
+            "name": "index_file_api",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "index_file_api.app",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }, {
+            
+            "name": "chunk_video_content",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "chunk_video_content.app",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }, {
+            
+            "name": "summarize_video_content",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "summarize_video_content.app",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}

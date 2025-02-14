@@ -1,0 +1,189 @@
+import uuid
+import asyncio
+from datetime import datetime
+from typing import Callable
+
+import logging
+from azure.servicebus import ServiceBusMessage
+from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer
+
+class ServiceBusEventMessagingService:
+    """
+    A service class for interacting with Azure Service Bus, providing functionality to send,
+    schedule, and process messages asynchronously.
+
+    Attributes:
+        service_bus_client (ServiceBusClient): The asynchronous Service Bus client instance.
+        logger (logging.Logger): Logger instance for logging activities.
+    """
+
+    def __init__(self, service_bus_client: ServiceBusClient):
+        """
+        Initialize the ServiceBusEventMessagingService with the Service Bus client and logger.
+
+        Args:
+            service_bus_client: The Azure Service Bus client
+            logger (logging.Logger): Logger instance for logging activities.
+        """
+        self.service_bus_client = service_bus_client          
+        self.logger = logging.getLogger(__name__)
+ 
+    async def send_message(
+            self,
+            queue_name: str,
+            body: str,
+            correlation_id: uuid.UUID = None
+    ) -> uuid.UUID:
+        """
+        Sends a message to a specified Service Bus queue.
+
+        Args:
+            queue_name (str): The name of the queue to send the message to.
+            body (str): The content of the message.
+            correlation_id (uuid.UUID, optional): An optional UUID to correlate messages.
+                                                  If not provided, a new UUID is generated.
+
+        Returns:
+            uuid.UUID: The correlation ID of the sent message.
+        """
+        try:
+            # Generate a new correlation ID if not provided
+            if correlation_id is None:
+                correlation_id = uuid.uuid4()
+                self.logger.debug(f"Generated new Correlation ID: {correlation_id}")
+
+                # Define application-specific properties for the message
+            application_properties = {"correlationId": correlation_id}
+
+            # Asynchronously create a sender for the specified queue
+            async with self.service_bus_client.get_queue_sender(queue_name) as sender:
+                # Create the ServiceBusMessage with the provided body and properties
+                message = ServiceBusMessage(
+                    body=body,
+                    application_properties=application_properties
+                )
+
+                # Send the message asynchronously
+                await sender.send_messages(message)
+                self.logger.info(f"Message sent to queue '{queue_name}' with Correlation ID: {correlation_id}")
+
+            return correlation_id
+        except Exception as e:
+            self.logger.exception(f"Failed to send message to queue '{queue_name}': {e}")
+            raise
+
+    async def schedule_message(
+            self,
+            queue_name: str,
+            body: str,
+            schedule_time_utc: datetime,
+            correlation_id: uuid.UUID = None
+    ) -> uuid.UUID:
+        """
+        Schedules a message to be sent to a specified Service Bus queue at a future time.
+
+        Args:
+            queue_name (str): The name of the queue to send the message to.
+            body (str): The content of the message.
+            schedule_time_utc (datetime): The UTC datetime when the message should be enqueued.
+            correlation_id (uuid.UUID, optional): An optional UUID to correlate messages.
+                                                  If not provided, a new UUID is generated.
+
+        Returns:
+            uuid.UUID: The correlation ID of the scheduled message.
+        """
+        try:
+            # Generate a new correlation ID if not provided
+            if correlation_id is None:
+                correlation_id = uuid.uuid4()
+                self.logger.debug(f"Generated new Correlation ID: {correlation_id}")
+
+                # Define application-specific properties for the message
+            application_properties = {"correlationId": correlation_id}
+
+            # Asynchronously create a sender for the specified queue
+            async with self.service_bus_client.get_queue_sender(queue_name) as sender:
+                # Create the ServiceBusMessage with the provided body and properties
+                message = ServiceBusMessage(
+                    body=body,
+                    application_properties=application_properties
+                )
+
+                # Schedule the message to be sent at the specified UTC time
+                await sender.schedule_messages(message, schedule_time_utc=schedule_time_utc)
+                self.logger.info(
+                    f"Message scheduled to queue '{queue_name}' at {schedule_time_utc.isoformat()} UTC with Correlation ID: {correlation_id}"
+                )
+
+            return correlation_id
+        except Exception as e:
+            self.logger.exception(f"Failed to schedule message to queue '{queue_name}': {e}")
+            raise
+
+    async def process_messages(
+            self,
+            queue_name: str,
+            stop_event: asyncio.Event,
+            message_handler: Callable
+    ):
+        """
+        Processes messages from a Service Bus receiver and delegates message processing
+        to the provided message_handler function.
+
+        Args:
+            queue_name (str): The name of the queue to listen to.
+            stop_event (asyncio.Event): An event to signal when to stop processing.
+            message_handler (Callable): A coroutine function to handle individual messages.
+        """
+        try:
+            # Asynchronously create a receiver for the specified queue
+            async with self.service_bus_client.get_queue_receiver(queue_name=queue_name) as receiver:
+                renewer = AutoLockRenewer()  # Handles automatic lock renewal for messages
+                self.logger.info(f"Started processing messages from queue '{queue_name}'.")
+                try:
+                    while not stop_event.is_set():
+                        # Receive messages with a specified batch size and wait time
+                        messages = await receiver.receive_messages(max_message_count=10, max_wait_time=5)
+
+                        if not messages:
+                            self.logger.debug("No messages received. Waiting for 5 seconds...")
+                            await asyncio.sleep(5)  # Wait before polling again
+                            continue
+
+                        self.logger.debug(f"Received {len(messages)} message(s).")
+
+                        for msg in messages:
+                            try:
+                                # Register the message with the renewer to handle lock renewal
+                                renewer.register(receiver, msg)
+
+                                correlation_id = msg.application_properties.get("correlationId")
+                                self.logger.info(
+                                    f"Processing message with Correlation ID: {correlation_id}"
+                                )
+
+                                # Delegate processing to the provided message_handler coroutine
+                                await message_handler(msg)
+
+                                # Complete the message to remove it from the queue
+                                await receiver.complete_message(message=msg)
+                                self.logger.info(
+                                    f"Message with Correlation ID: {correlation_id} completed."
+                                )
+
+                            except Exception as e:
+                                correlation_id = msg.application_properties.get("correlationId")
+                                self.logger.exception(
+                                    f"Error processing message with Correlation ID: {correlation_id}: {e}")
+                                # Optionally, abandon the message to make it available for reprocessing
+                                await receiver.abandon_message(message=msg)
+                                self.logger.info(
+                                    f"Message with Correlation ID: {correlation_id} abandoned."
+                                )
+                finally:
+                    # Ensure that the renewer is properly closed to release resources
+                    await renewer.close()
+                    self.logger.info("AutoLockRenewer closed.")
+        except Exception as e:
+            self.logger.exception(f"Failed to process messages from queue '{queue_name}': {e}")
+            raise

@@ -1,33 +1,43 @@
-# Project
+# VideoIndexer
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+This project uses LLMs to chunk, index, and summarize a video - as a reactive architecture.
 
-As the maintainer of this project, please make a few updates:
+## Running the code
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+The dev container definition contains all needed features and a list of required environment variables to run this code base
 
-## Contributing
+This project uses Astral uv for python.
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+### Running in dev
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+#### installing packages
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+In order to get started, run ```uv sync``` in the root directory.
 
-## Trademarks
+#### executing a project
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+To execute a particular project, the uv project scripts use the name of the corresponding folders. Use the following short hand to execute each project:
+
+* chunk_video_content: ```uv run chunk_video_content```
+* index_file_api: ```uv run chunk_video_content```
+* summarize_video_content: ```uv run chunk_video_content```
+
+#### executing a project with a custom env file
+
+To use a custom env file, you can either specify the uv environment variable ```UV_ENV_FILE``` or add the run flag ```--env-file```
+
+For example:
+
+* chunk_video_content: ```uv run chunk_video_content --env-file .env```
+* index_file_api: ```uv run chunk_video_content --env-file .env```
+* summarize_video_content: ```uv run chunk_video_content --env-file .env```
+
+### Running in docker
+
+To run this in docker, you'll need to run the docker build with the appropriate directory name supplied as an arg.
+
+For example:
+
+* chunk_video_content: ```docker build -t chunk_video_content . --buil-arg PROJECTPATH=chunk_video_content```
+* index_file_api: ```docker build -t index_file_api . --buil-arg PROJECTPATH=index_file_api```
+* summarize_video_content: ```docker build -t summarize_video_content . --buil-arg PROJECTPATH=summarize_video_content```

@@ -1,0 +1,40 @@
+[project]
+name = "video-indexer"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "index_file_api",
+    "summarize_video_content",
+    "chunk_video_content",
+]
+
+[project.scripts]
+index_file_api = "index_file_api:app.main"
+summarize_video_content = "summarize_video_content:app.main"
+chunk_video_content = "chunk_video_content:app.main"
+
+[tool.uv.sources]
+core = { workspace = true }
+index_file_api = { workspace = true }
+summarize_video_content = { workspace = true }
+chunk_video_content = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "core",
+    "index_file_api",
+    "summarize_video_content",
+    "chunk_video_content",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "core",
+    "index_file_api",
+    "summarize_video_content",
+    "chunk_video_content",
+]

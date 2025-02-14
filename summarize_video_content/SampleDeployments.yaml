@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: summarize-video-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: summarize-video-app
+  template:
+    metadata:
+      labels:
+        app: summarize-video-app
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: workload-identity-sa
+      containers:
+      - name: summarize-video-container
+        image: ACRNAME.azurecr.io/summarizevideo:0.0.1
+        env:
+        - name: SERVICE_BUS_FULLY_QUALIFIED_NAMESPACE
+          value: "SERVICE_BUS_FULLY_QUALIFIED_NAMESPACE"
+        - name: FINALIZE_CONTENT_QUEUE
+          value: "FINALIZE_CONTENT_QUEUE"
+        - name: VIDEO_SUMMARIZED_QUEUE
+          value: "VIDEO_SUMMARIZED_QUEUE"
+        - name: COGNITIVE_SERVICES_ENDPOINT
+          value: "COGNITIVE_SERVICES_ENDPOINT"
+        - name: AZURE_OPENAI_ENDPOINT
+          value: "AZURE_OPENAI_ENDPOINT"
+        - name: AZURE_OPENAI_API_VERSION
+          value: "AZURE_OPENAI_API_VERSION"
+        - name: AZURE_OPENAI_MODEL_NAME
+          value: "AZURE_OPENAI_MODEL_NAME"
+        - name: CONTENT_UNDERSTANDING_ENDPOINT
+          value: "CONTENT_UNDERSTANDING_ENDPOINT"
+        - name: CONTENT_UNDERSTANDING_API_VERSION
+          value: "CONTENT_UNDERSTANDING_API_VERSION"
+        - name: VIDEO_ANALYZER_NAME
+          value: "VIDEO_ANALYZER_NAME"
+        - name: STORAGE_ACCOUNT_NAME
+          value: "STORAGE_ACCOUNT_NAME"
+        - name: STORAGE_CONTAINER_NAME
+          value: "STORAGE_CONTAINER_NAME"
+        - name: CONTENT_UNDERSTANDING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: content-understanding-key
+              key: content-understanding-key
+      volumes:
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: "1Gi"
+        - name: SECRETSTORENAME
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "secretProviderClass"

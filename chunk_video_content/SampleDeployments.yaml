@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chunk-video-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chunk-video-app
+  template:
+    metadata:
+      labels:
+        app: chunk-video-app
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: workload-identity-sa
+      containers:
+      - name: chunk-video-container
+        image: ACRNAME.azurecr.io/chunkvideo:0.0.1
+        env:
+        - name: SERVICE_BUS_FULLY_QUALIFIED_NAMESPACE
+          value: "SERVICE_BUS_FULLY_QUALIFIED_NAMESPACE"
+        - name: INDEX_BLOB_QUEUE
+          value: "INDEX_BLOB_QUEUE"
+        - name: FINALIZE_CONTENT_QUEUE
+          value: "FINALIZE_CONTENT_QUEUE"
+        - name: CONTENT_UNDERSTANDING_URL
+          value: "CONTENT_UNDERSTANDING_URL"
+        - name: CONTENT_UNDERSTANDING_API_VERSION
+          value: "CONTENT_UNDERSTANDING_API_VERSION"
+        - name: VIDEO_ANALYZER_NAME
+          value: "VIDEO_ANALYZER_NAME"
+        - name: STORAGE_ACCOUNT_NAME
+          value: "STORAGE_ACCOUNT_NAME"
+        - name: CONTAINER_NAME
+          value: "CONTAINER_NAME"
+        - name: MP4_OUTPUT_PATH
+          value: "MP4_OUTPUT_PATH"
+        - name: CONTENT_UNDERSTANDING_KEY
+          valueFrom:
+            secretKeyRef:
+              name: content-understanding-key
+              key: content-understanding-key
+        volumeMounts:
+          - name: tmp-volume
+            mountPath: /tmp
+          - name: SECRETSTORENAME
+            mountPath: "/mnt/secrets-store"
+            readOnly: true
+      volumes:
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
+            sizeLimit: "1Gi"
+        - name: SECRETSTORENAME
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "secretProviderClass"

@@ -1,0 +1,13 @@
+# Ignore .env files
+.env
+*.env
+
+# Ignore other potentially sensitive or unnecessary files
+Deployment.yaml
+.dockerignore
+.git
+.gitignore
+*.pyc
+__pycache__/
+.venv
+venv
