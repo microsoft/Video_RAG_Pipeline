@@ -8,7 +8,7 @@ from chunk_video_content.settings import AppSettings
 from chunk_video_content.container import Container
 from chunk_video_content.message_handler import MessageHandler
 
-from core.services import EventMessagingService
+from core import EventMessagingService
 
 # Load application settings
 load_dotenv()
@@ -30,7 +30,7 @@ stop_event = asyncio.Event()
 async def main_logic(
         event_messaging_service: EventMessagingService = Provide[Container.event_messaging_service],
         message_handler: MessageHandler = Provide[Container.message_handler],
-        index_file_queue: StopAsyncIteration = Provide[Container.config.index_file_queue]
+        index_file_queue: str = Provide[Container.config.index_file_queue]
 ):
     """
     The main asynchronous function that initializes services and starts listening for messages.

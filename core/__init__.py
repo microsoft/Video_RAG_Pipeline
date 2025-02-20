@@ -5,6 +5,7 @@ __all__ = [
     "Payload",
     "BlobMetadata",
     "EventMessagingService",
+    "ServiceBusEventMessagingService",
     "ContentUnderstandingClient",
     "ContentResult",
     "create_azure_credential",
