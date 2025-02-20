@@ -13,7 +13,6 @@ from index_file_api.container import Container
 from index_file_api.models import Payload
 from index_file_api.settings import AppSettings
 
-from core.services import EventMessagingService
 from core.models import BlobMetadata
 
 # Load environment variables from the .env file

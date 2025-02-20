@@ -13,7 +13,7 @@ class AppSettings(BaseSettings):
     such as Azure Service Bus details and logging configurations.
 
     Attributes:
-        service_bus_fully_qualified_namespace (str):
+        service_bus_namespace (str):
             The fully qualified namespace for the Azure Service Bus. This is typically
             in the format '<namespace>.servicebus.windows.net' and is used to uniquely
             identify the Service Bus instance.
@@ -36,9 +36,17 @@ class AppSettings(BaseSettings):
         env_ignore_empty=True , # Ignore environment variables that are empty strings
     )
 
-    # Define required settings fields
-    service_bus_fully_qualified_namespace: str  # Azure Service Bus namespace (e.g., 'myservicebus.servicebus.windows.net')
-    index_file_queue: str  # Name of the Azure Service Bus queue for index files
+    # Azure Service Bus fully qualified namespace
+    service_bus_namespace: str
+
+    # Azure Service Bus api key
+    service_bus_api_key: str
+
+    # Azure Service Bus api key name
+    service_bus_api_key_name: str
+
+    # Name of the Azure Service Bus queue for index files
+    index_file_queue: str
 
     # Optional logging level setting; accepts integer (e.g., 10) or string (e.g., 'DEBUG')
     logging_level: Optional[int | str] = logging.ERROR

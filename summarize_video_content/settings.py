@@ -9,7 +9,7 @@ class AppSettings(BaseSettings):
     It loads environment variables and provides them as strongly-typed attributes.
 
     Attributes:
-        service_bus_fully_qualified_namespace (str):
+        service_bus_namespace (str):
             The fully qualified namespace for Azure Service Bus.
 
         finalize_content_queue (str):
@@ -61,7 +61,13 @@ class AppSettings(BaseSettings):
     )
 
     # Azure Service Bus fully qualified namespace
-    service_bus_fully_qualified_namespace: str
+    service_bus_namespace: str
+
+    # Azure Service Bus api key
+    service_bus_api_key: str
+
+    # Azure Service Bus api key name
+    service_bus_api_key_name: str
 
     # Name of the Service Bus queue used to finalize content processing
     finalize_content_queue: str
@@ -69,11 +75,11 @@ class AppSettings(BaseSettings):
     # Name of the Service Bus queue used for video summary tasks
     video_summary_queue: str
 
-    # Endpoint URL for Azure Cognitive Services API
-    cognitive_services_endpoint: str
-
     # Endpoint URL for Azure OpenAI Service
     azure_openai_endpoint: str
+
+    # API key for Azure OpenAI Service
+    azure_openai_key: str
 
     # API version for Azure OpenAI Service
     azure_openai_api_version: str
@@ -98,6 +104,9 @@ class AppSettings(BaseSettings):
 
     # Name of the container within the Azure Storage account
     storage_container_name: str
+
+    # Name of the container within the Azure Storage account
+    storage_account_api_key: str
 
     # Logging level for the application (e.g., DEBUG, INFO, WARNING, ERROR)
     # Defaults to logging.ERROR if not specified in the environment

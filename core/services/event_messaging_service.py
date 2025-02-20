@@ -1,9 +1,31 @@
-from typing import Protocol, Callable
+import logging
 import uuid
-from datetime import datetime
 import asyncio
 
+from typing import Protocol, Callable
+from datetime import datetime
+
+from azure.servicebus.aio import ServiceBusClient
+from azure.core.credentials import AzureNamedKeyCredential
+
 class EventMessagingService(Protocol):
+    def __init__(self, endpoint: str, api_key_name: str, api_key: str, logger: logging.Logger):
+        self.endpoint = endpoint
+        self.api_key = api_key
+        self.api_key_name = api_key_name
+        self.logger = logger
+        self.credential = AzureNamedKeyCredential(name=api_key_name, key=api_key)
+        self.client = ServiceBusClient(
+            fully_qualified_namespace=endpoint,
+            credential=self.credential
+        )
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
     async def send_message(
             self,
             queue_name: str,

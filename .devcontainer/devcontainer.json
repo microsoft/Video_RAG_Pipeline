@@ -31,7 +31,7 @@
 		}
 	},
 	"secrets": {
-		"service_bus_fully_qualified_namespace": {
+		"service_bus_namespace": {
 			"description": "Fully qualified namespace for Azure Service Bus."
 		},
 		"finalize_content_queue": {
@@ -82,13 +82,13 @@
 		"index_blob_queue": {
 			"description": "Name of the queue for indexing blobs."
 		},
-		"content_understanding_url": {
+		"content_understanding_endpoint": {
 			"description": "URL endpoint for the content understanding service."
 		},
 		"mp4_output_path": {
 			"description": "Filesystem path where MP4 output files will be stored."
 		},
-		"container_name": {
+		"storage_container_name": {
 			"description": "Name of the blob container in Azure Storage."
 		},
 		"logging_level": {

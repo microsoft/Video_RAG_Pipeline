@@ -1,9 +1,10 @@
 import uuid
 import asyncio
-from datetime import datetime
-from typing import Callable
-
 import logging
+
+from typing import Callable
+from datetime import datetime
+
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer
 

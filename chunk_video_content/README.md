@@ -6,15 +6,15 @@ This application downloads GIF files, converts them to MP4 format, uploads the c
 
 The application uses the following settings, which can be configured via environment variables or a `.env` file:
 
-- `service_bus_fully_qualified_namespace`: Fully qualified namespace for Azure Service Bus.
-- `index_blob_queue`: Name of the queue for indexing blobs.
+- `service_bus_namespace`: Fully qualified namespace for Azure Service Bus.
+- `index_file_queue`: Name of the queue for indexing blobs.
 - `finalize_content_queue`: Name of the queue for finalizing content processing.
-- `content_understanding_url`: URL endpoint for the content understanding service.
+- `content_understanding_endpoint`: URL endpoint for the content understanding service.
 - `content_understanding_key`: API key for authenticating with the content understanding service.
 - `content_understanding_api_version`: API version to use for the content understanding service.
 - `video_analyzer_name`: Name identifier for the video analyzer service.
 - `storage_account_name`: Azure Storage account name.
-- `container_name`: Name of the blob container in Azure Storage.
+- `storage_container_name`: Name of the blob container in Azure Storage.
 - `mp4_output_path`: Filesystem path where MP4 output files will be stored.
 - `logging_level`: Optional logging level (e.g., DEBUG, INFO). Defaults to `ERROR`.
 

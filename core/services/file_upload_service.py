@@ -1,15 +1,16 @@
-from azure.identity.aio import DefaultAzureCredential
-from azure.storage.blob import BlobServiceClient
 from datetime import datetime, timedelta, timezone
+
+from azure.core.credentials import AzureNamedKeyCredential
+from azure.storage.blob import BlobServiceClient
 
 from azure.storage.blob import BlobSasPermissions, generate_blob_sas
 
 class AzureBlobFileUploadService():
 
-    def __init__(self, credential: DefaultAzureCredential, storage_account_name: str, storage_container_name: str):
-        self.credential = credential
+    def __init__(self, storage_account_name: str, storage_container_name: str, credential: any):
         self.storage_account_name = storage_account_name
         self.storage_container_name = storage_container_name
+        self.credential = credential
 
     async def upload_to_azure_blob(
         self,

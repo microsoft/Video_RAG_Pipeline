@@ -6,7 +6,7 @@ This application analyzes video content by retrieving transcribed segments, gene
 
 The application uses the following settings, which can be configured via environment variables or a `.env` file:
 
-- `service_bus_fully_qualified_namespace`: Fully qualified namespace for Azure Service Bus.
+- `service_bus_namespace`: Fully qualified namespace for Azure Service Bus.
 - `finalize_content_queue`: Name of the queue for finalizing content processing.
 - `video_summary_queue`: Name of the queue for video summary tasks.
 - `cognitive_services_endpoint`: Endpoint URL for Azure Cognitive Services API.

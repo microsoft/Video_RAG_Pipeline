@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 
-import structlog
+import logging
 import uuid
 
 from azure.servicebus import ServiceBusMessage
@@ -12,7 +12,7 @@ from core.services import ContentUnderstandingClient, AzureBlobFileUploadService
 
 from core.utils import get_file_name_from_url
 
-logger = structlog.get_logger("message_handler")
+logger = logging.getLogger(__name__)
 
 
 class MessageHandler:
