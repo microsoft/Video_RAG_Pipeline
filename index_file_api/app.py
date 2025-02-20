@@ -91,7 +91,7 @@ async def process_payload(
 
         logger.info("Payload processed successfully with message ID: %s", correlation_id)
 
-        return {"message_id": str(correlation_id)}
+        return {"correlation_id": str(correlation_id)}
 
     except Exception as e:
         logger.error("An unexpected error occurred: %s", e)
