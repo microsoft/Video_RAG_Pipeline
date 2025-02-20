@@ -10,8 +10,7 @@ dependencies = [
     "asyncio",
     "azure.servicebus",
     "pydantic",
-    "dependency-injector",
-    "standard-imghdr",
+    "dependency-injector"
 ]
 
 [build-system]
