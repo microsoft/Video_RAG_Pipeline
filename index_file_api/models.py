@@ -1,5 +1,7 @@
+import uuid
+
 from pydantic import BaseModel
 
 class Payload(BaseModel):
-    id: str
+    id: uuid.UUID
     fileUrl: str

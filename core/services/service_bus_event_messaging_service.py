@@ -157,7 +157,8 @@ class ServiceBusEventMessagingService:
                                 # Register the message with the renewer to handle lock renewal
                                 renewer.register(receiver, msg)
 
-                                correlation_id = msg.application_properties.get("correlationId")
+                                correlation_id = msg.application_properties.get(b"correlationId")
+
                                 self.logger.info(
                                     f"Processing message with Correlation ID: {correlation_id}"
                                 )
@@ -172,7 +173,7 @@ class ServiceBusEventMessagingService:
                                 )
 
                             except Exception as e:
-                                correlation_id = msg.application_properties.get("correlationId")
+                                correlation_id = msg.application_properties.get(b"correlationId")
                                 self.logger.exception(
                                     f"Error processing message with Correlation ID: {correlation_id}: {e}")
                                 # Optionally, abandon the message to make it available for reprocessing

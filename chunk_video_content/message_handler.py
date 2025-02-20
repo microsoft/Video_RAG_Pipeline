@@ -1,5 +1,6 @@
 import logging
 import aiohttp
+import uuid
 
 from azure.servicebus import ServiceBusMessage
 from core.models import BlobMetadata, VideoUploadMetadata
@@ -34,29 +35,44 @@ class MessageHandler():
         self.logger = logging.getLogger(__name__)
 
     async def receive_messages(self, message: ServiceBusMessage):
+        """
+        Asynchronous function to handle incoming Service Bus messages.
+
+        Example:
+        {
+            "fileUrl": "https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4"
+        }
+
+        Custom properties:
+        - correlationId: "e51e9d55-e60d-40eb-9a9f-12dc24ed5b48"
+
+        :param message: The incoming Service Bus message
+        """
         try:
             # Log that a message has been received
             self.logger.info("Received message")
 
             # Convert the message content to a string and parse it into BlobMetadata
             message_content = str(message)
+
+            # Extract the correlation ID from the message properties
+            correlation_id: uuid.UUID = message.application_properties.get(b"correlationId", None)
+
             blob_metadata = BlobMetadata.model_validate_json(message_content)
             file_name = get_file_name_from_url(blob_metadata.fileUrl)  # Extract the file name from the URL
             is_uploaded: bool = False
 
             # Check if the file is a GIF
             if is_file_type(file_name, ".gif"):
-                mp4_path = self.gif_converter.download_and_convert_gif(file_name)
+                mp4_path = await self.gif_converter.download_and_convert_gif(blob_metadata.fileUrl, file_name)
                 file_name = file_name.replace(".gif", ".mp4")
                 is_uploaded = True  # Sets the bool to uploaded
-            else:
-                mp4_path = blob_metadata.fileUrl
 
-            # Upload the converted MP4 to Azure Blob Storage and update the file URL
-            blob_metadata.fileUrl = await self.blob_upload_service.upload_to_azure_blob(
-                file_path=mp4_path,
-                blob_name=file_name
-            )
+                # Upload the converted MP4 to Azure Blob Storage and update the file URL
+                blob_metadata.fileUrl = await self.blob_upload_service.upload_to_azure_blob(
+                    file_path=mp4_path,
+                    blob_name=file_name
+                )
 
             # Upload the content URL to the Content Understanding service and get the video ID
             self.logger.info(blob_metadata.fileUrl)
@@ -73,10 +89,13 @@ class MessageHandler():
                 fileUrl=blob_metadata.fileUrl,
                 isUploaded=is_uploaded
             )
+
             json_string = video_upload_metadata.model_dump_json()
+
             await self.event_messaging_service.send_message(
                 queue_name=self.finalize_content_queue_name,
                 body=json_string,
+                correlation_id=correlation_id
             )
 
             # Log that the message has been successfully sent

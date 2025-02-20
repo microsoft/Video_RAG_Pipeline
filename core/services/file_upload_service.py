@@ -82,3 +82,20 @@ class AzureBlobFileUploadService():
 
         return blob_url_with_sas
 
+    async def delete_blob(
+        self,
+        blob_name: str
+    ) -> None:
+        """
+        Deletes a blob from Azure Blob Storage.
+
+        :param blob_name: Name of the blob to delete
+        """
+        account_url = f"https://{self.storage_account_name}.blob.core.windows.net"
+
+        # Initialize the BlobServiceClient with the account URL and credentials
+        async with BlobServiceClient(account_url=account_url, credential=self.credential) as blob_service_client:
+            # Get the BlobClient for the specific blob
+            async with blob_service_client.get_container_client(container=self.storage_container_name) as container_client:
+                await container_client.delete_blob(blob=blob_name)  # Delete the blob from storage
+
