@@ -5,6 +5,7 @@ from typing import Optional
 from core.models import ContentResult
 
 
+
 class ContentUnderstandingClient:
     """
     An asynchronous client for interacting with the Content Understanding API using aiohttp.
@@ -39,6 +40,16 @@ class ContentUnderstandingClient:
 
         # Initialize the logger
         self.logger = logging.getLogger(__name__)
+
+    # TODO: Remove this
+    # This was needed because of the summarize_video_content service
+    # Such service should implement the container.py approach as in chunk_video_content service
+    async def __aenter__(self):
+        return self
+
+    # TODO: Same as above, remove this
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.session.close()
 
     async def get_content_status(self, content_id: str) -> ContentResult:
         """
@@ -94,11 +105,13 @@ class ContentUnderstandingClient:
             f"{self.endpoint}/contentunderstanding/analyzers/{self.analyzer_name}:analyze"
             f"?api-version={self.api_version}"
         )
+
         self.logger.debug(f"POST URL: {url}")
 
         data = {
             "url": content_url
         }
+
         self.logger.debug(f"POST Payload: {data}")
 
         try:
@@ -114,6 +127,7 @@ class ContentUnderstandingClient:
         except aiohttp.ClientResponseError as http_err:
             # Extract response text if available
             try:
+                # TODO: review this, it doesn't seem to be working
                 error_text = await http_err.response.text()
             except Exception:
                 error_text = "No response text available."

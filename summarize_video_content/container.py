@@ -1,13 +1,13 @@
 import logging
 
 from dependency_injector import containers, providers
+from openai import AzureOpenAI
 
-from core import create_azure_credential, create_service_bus_client, create_content_understanding_http_client_session
-from core.services import ServiceBusEventMessagingService, ContentUnderstandingClient, AnimatedGifConverter, \
-    AzureBlobFileUploadService
+from core import create_service_bus_client, create_azure_credential
+from core.services import ServiceBusEventMessagingService, ContentUnderstandingClient, AzureBlobFileUploadService, \
+    create_content_understanding_http_client_session
 
-from chunk_video_content.message_handler import MessageHandler
-
+from summarize_video_content.message_handler import MessageHandler
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
@@ -37,12 +37,6 @@ class Container(containers.DeclarativeContainer):
         api_version=config.content_understanding_api_version,
     )
 
-    gif_converter = providers.Singleton(
-        AnimatedGifConverter,
-        download_dir=config.mp4_output_path,
-        client_session=http_client_session
-    )
-
     file_upload_service = providers.Singleton(
         AzureBlobFileUploadService,
         storage_account_name=config.storage_account_name,
@@ -54,21 +48,25 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
+    openai_service = providers.Singleton(
+        AzureOpenAI,
+        api_key=config.azure_openai_key,
+        api_version=config.azure_openai_api_version,
+        azure_endpoint=config.azure_openai_endpoint
+    )
+
     service_bus_messaging_service = providers.Singleton(
         ServiceBusEventMessagingService,
         service_bus_client=service_bus_client,
     )
 
-    event_messaging_service = providers.Selector(
-        config.message_broker_type,
-        service_bus=service_bus_messaging_service
-    )
-
     message_handler = providers.Singleton(
         MessageHandler,
-        event_messaging_service=event_messaging_service,
-        gif_converter=gif_converter,
+        service_bus_messaging_service=service_bus_messaging_service,
+        file_upload_service=file_upload_service,
         content_understanding_client=content_understanding_client,
-        blob_upload_service=file_upload_service,
+        openai_service=openai_service,
+        openai_model_name=config.azure_openai_model_name,
         finalize_content_queue_name=config.finalize_content_queue,
+        video_summary_queue_name=config.video_summary_queue
     )

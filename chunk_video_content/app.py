@@ -1,34 +1,37 @@
 import asyncio
 import logging
-import os
-from datetime import datetime, timedelta, timezone
-from typing import Callable
 
-import aiofiles
-import aiohttp
-import tempfile
-
-from azure.identity.aio import DefaultAzureCredential
-from azure.servicebus import ServiceBusMessage
-from azure.storage.blob import BlobSasPermissions, generate_blob_sas
-from azure.storage.blob.aio import BlobServiceClient
 from dotenv import load_dotenv
-from moviepy import VideoFileClip
 from dependency_injector.wiring import inject, Provide
 
-from .settings import AppSettings
-from .container import Container
-from .message_handler import MessageHandler
-from core.models import BlobMetadata, VideoUploadMetadata
-from core.services import ContentUnderstandingClient, EventMessagingService, ServiceBusEventMessagingService
+from chunk_video_content.settings import AppSettings
+from chunk_video_content.container import Container
+from chunk_video_content.message_handler import MessageHandler
+
+from core import EventMessagingService
+
+# Load application settings
+load_dotenv()
+settings = AppSettings()
+
+# Configure logging
+logging.basicConfig(
+    level=settings.logging_level,  # Set desired log level
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
 
 # Create an asyncio event to signal when to stop processing
 stop_event = asyncio.Event()
 
 @inject
-async def main_logic(event_messaging_service: EventMessagingService = Provide[Container.event_messaging_service],
-                     message_handler: MessageHandler = Provide[Container.message_handler],
-                     index_blob_queue: StopAsyncIteration = Provide[Container.config.index_blob_queue]):
+async def main_logic(
+        event_messaging_service: EventMessagingService = Provide[Container.event_messaging_service],
+        message_handler: MessageHandler = Provide[Container.message_handler],
+        index_file_queue: str = Provide[Container.config.index_file_queue]
+):
     """
     The main asynchronous function that initializes services and starts listening for messages.
     """
@@ -39,7 +42,7 @@ async def main_logic(event_messaging_service: EventMessagingService = Provide[Co
 
         # Start processing messages from the specified queue
         await event_messaging_service.process_messages(
-            queue_name=index_blob_queue,
+            queue_name=index_file_queue,
             stop_event=stop_event,
             message_handler=message_handler.receive_messages,
         )
@@ -54,6 +57,7 @@ async def main_logic(event_messaging_service: EventMessagingService = Provide[Co
         # Log any exceptions that occur during the initialization of the application
         logger.error(f"Error initializing application: {e}", exc_info=True)
 
+
 async def main_composition_root():
     """
     The main composition root function that initializes the application and starts the main logic.
@@ -61,16 +65,17 @@ async def main_composition_root():
 
     # Load application settings from the AppSettings class
     container = Container()
-    container.config.from_pydantic(AppSettings())
+    container.config.from_pydantic(settings)
     container.wire(modules=[__name__])
 
     await container.init_resources()
     await main_logic()
     await container.shutdown_resources()
 
+
 def main():
-    load_dotenv()
     asyncio.run(main_composition_root())
+
 
 if __name__ == "__main__":
     main()

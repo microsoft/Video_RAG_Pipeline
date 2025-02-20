@@ -1,5 +1,3 @@
-import imghdr
-
 from urllib.parse import urlparse
 
 def get_file_name_from_url(url: str) -> str:

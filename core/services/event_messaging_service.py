@@ -1,7 +1,8 @@
-from typing import Protocol, Callable
 import uuid
-from datetime import datetime
 import asyncio
+
+from typing import Protocol, Callable
+from datetime import datetime
 
 class EventMessagingService(Protocol):
     async def send_message(
