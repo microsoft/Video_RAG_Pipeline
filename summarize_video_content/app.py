@@ -14,6 +14,15 @@ from summarize_video_content.settings import AppSettings
 load_dotenv()
 settings = AppSettings()
 
+# Configure logging
+logging.basicConfig(
+    level=settings.logging_level,  # Set desired log level
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+
 # Initialize an asyncio event to signal when to stop processing messages
 stop_event = asyncio.Event()
 

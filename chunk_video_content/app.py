@@ -10,9 +10,21 @@ from chunk_video_content.message_handler import MessageHandler
 
 from core.services import EventMessagingService
 
+# Load application settings
+load_dotenv()
+settings = AppSettings()
+
+# Configure logging
+logging.basicConfig(
+    level=settings.logging_level,  # Set desired log level
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+
 # Create an asyncio event to signal when to stop processing
 stop_event = asyncio.Event()
-
 
 @inject
 async def main_logic(
@@ -53,7 +65,7 @@ async def main_composition_root():
 
     # Load application settings from the AppSettings class
     container = Container()
-    container.config.from_pydantic(AppSettings())
+    container.config.from_pydantic(settings)
     container.wire(modules=[__name__])
 
     await container.init_resources()
@@ -62,7 +74,6 @@ async def main_composition_root():
 
 
 def main():
-    load_dotenv()
     asyncio.run(main_composition_root())
 
 
