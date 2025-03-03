@@ -65,6 +65,12 @@ async def setup_container():
     container.config.from_pydantic(settings)
     container.wire(modules=[__name__])
 
+    # Determine how we're authenticating to Azure Open AI
+    if container.config.get("azure_openai_key"):
+        container.config.azure_openai_auth_type.override("key")
+    else:
+        container.config.azure_openai_auth_type.override("managed_identity")
+
     await container.init_resources()
     await main_logic()
     await container.shutdown_resources()
