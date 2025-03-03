@@ -39,11 +39,11 @@ class AppSettings(BaseSettings):
     # Azure Service Bus fully qualified namespace
     service_bus_namespace: str
 
-    # Azure Service Bus api key
-    service_bus_api_key: str
+    # Azure Service Bus api key (optional if using Managed Identity)
+    service_bus_api_key: Optional[str] = None
 
     # Azure Service Bus api key name
-    service_bus_api_key_name: str
+    service_bus_api_key_name: Optional[str] = None
 
     # Name of the Azure Service Bus queue for index files
     index_file_queue: str
