@@ -1,7 +1,7 @@
 import aiohttp
 import aiofiles
 import os
-from moviepy import VideoFileClip
+from moviepy import VideoFileClip, vfx
 
 class AnimatedGifConverter():
 
@@ -54,10 +54,7 @@ class AnimatedGifConverter():
                 scale_height = self.min_height / original_height
                 scale_factor = max(scale_width, scale_height)  # Scale to meet both width and height requirements
 
-                new_width = int(original_width * scale_factor)
-                new_height = int(original_height * scale_factor)
-
-                clip = clip.resize(new_size=(new_width, new_height))  # Resize the clip
+                clip = clip.with_effects([vfx.Resize(scale_factor)])  # Resize the clip
 
             # Write the resized clip to an MP4 file without audio
             clip.write_videofile(mp4_path, codec="libx264", audio=False)
