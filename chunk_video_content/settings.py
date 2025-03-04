@@ -31,11 +31,11 @@ class AppSettings(BaseSettings):
     # Azure Service Bus fully qualified namespace
     service_bus_namespace: str
 
-    # Azure Service Bus api key
-    service_bus_api_key: str
+    # Azure Service Bus api key (optional if using Managed Identity)
+    service_bus_api_key: Optional[str] = None
 
     # Azure Service Bus api key name
-    service_bus_api_key_name: str
+    service_bus_api_key_name: Optional[str] = None
 
     # Message broker type (valid options: "service_bus".  "kafka" coming soon)
     message_broker_type: str = "service_bus"
@@ -64,8 +64,8 @@ class AppSettings(BaseSettings):
     # Name of the container within the Azure Storage account
     storage_container_name: str
 
-    # Name of the container within the Azure Storage account
-    storage_account_api_key: str
+    # Name of the container within the Azure Storage account (optional if using Managed Identity)
+    storage_account_api_key: Optional[str] = None
 
     # Filesystem path where processed MP4 files will be saved  
     mp4_output_path: str

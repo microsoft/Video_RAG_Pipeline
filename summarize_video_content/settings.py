@@ -63,11 +63,11 @@ class AppSettings(BaseSettings):
     # Azure Service Bus fully qualified namespace
     service_bus_namespace: str
 
-    # Azure Service Bus api key
-    service_bus_api_key: str
+    # Azure Service Bus api key (optional if using Managed Identity)
+    service_bus_api_key: Optional[str] = None
 
     # Azure Service Bus api key name
-    service_bus_api_key_name: str
+    service_bus_api_key_name: Optional[str] = None
 
     # Name of the Service Bus queue used to finalize content processing
     finalize_content_queue: str
@@ -78,8 +78,8 @@ class AppSettings(BaseSettings):
     # Endpoint URL for Azure OpenAI Service
     azure_openai_endpoint: str
 
-    # API key for Azure OpenAI Service
-    azure_openai_key: str
+    # API key for Azure OpenAI Service (optional if using Managed Identity)
+    azure_openai_key: Optional[str] = None
 
     # API version for Azure OpenAI Service
     azure_openai_api_version: str
@@ -105,8 +105,8 @@ class AppSettings(BaseSettings):
     # Name of the container within the Azure Storage account
     storage_container_name: str
 
-    # Name of the container within the Azure Storage account
-    storage_account_api_key: str
+    # Name of the container within the Azure Storage account (optional if using Managed Identity)
+    storage_account_api_key: Optional[str] = None
 
     # Logging level for the application (e.g., DEBUG, INFO, WARNING, ERROR)
     # Defaults to logging.ERROR if not specified in the environment

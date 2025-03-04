@@ -1,4 +1,4 @@
-from azure.identity.aio import DefaultAzureCredential
+from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 from azure.core.credentials import AzureNamedKeyCredential
 
 from .content_understanding_client import *
@@ -19,6 +19,8 @@ async def create_azure_credential(api_key_name: Optional[str] = None, api_key: O
         await credential.close()
 
 async def create_service_bus_client(endpoint: str, credential: any, logger: any):
+    logger.debug(f"Creating Service Bus client for endpoint: {endpoint}")
+    logger.debug(f"Using credential: {credential}")
     try:
         client = ServiceBusClient(fully_qualified_namespace=endpoint, credential=credential)
         logger.info("Service Bus client initialized.")
@@ -33,6 +35,13 @@ async def create_service_bus_client(endpoint: str, credential: any, logger: any)
         logger.exception(f"Error closing Service Bus client: {e}")
     finally:
         client = None  # Ensure the client is reset
+
+# we need to extract a token provider for the AzureOpenAI client if we're going to connect via Managed Identity
+async def create_token_provider():
+    credential = DefaultAzureCredential()
+    token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
+    yield token_provider
+    await credential.close()
 
 async def create_content_understanding_http_client_session(key: str, logger: Optional[any]):
     headers = {
@@ -61,6 +70,7 @@ __all__ = [
     "AnimatedGifConverter",
     "AzureBlobFileUploadService",
     "create_azure_credential",
+    "create_token_provider",
     "create_service_bus_client",
     "create_content_understanding_http_client_session"
 ]
