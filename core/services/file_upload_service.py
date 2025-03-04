@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from azure.core.credentials import AzureNamedKeyCredential
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob.aio import BlobServiceClient
 
 from azure.storage.blob import BlobSasPermissions, generate_blob_sas
 
