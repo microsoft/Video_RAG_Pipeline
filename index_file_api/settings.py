@@ -1,7 +1,8 @@
 import logging
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+from typing import Optional, List
+from pydantic import field_validator
 
 class AppSettings(BaseSettings):
     """
@@ -51,5 +52,16 @@ class AppSettings(BaseSettings):
     # Optional logging level setting; accepts integer (e.g., 10) or string (e.g., 'DEBUG')
     logging_level: Optional[int | str] = logging.ERROR
 
+    allowed_mime_types: Optional[List[str]] = []
+
     host: str = "0.0.0.0"
     port: int = 8000
+
+    @field_validator("allowed_mime_types", mode="before")
+    @classmethod
+    def parse_comma_separated_list(cls, value):
+        """Convert a comma-separated string into a list of strings."""
+        if isinstance(value, str):
+            # Split by comma and strip whitespace from each item
+            return [item.strip() for item in value.split(",") if item.strip()]
+        return value
