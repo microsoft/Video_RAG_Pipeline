@@ -19,8 +19,8 @@ In order to get started, run ```uv sync``` in the root directory.
 To execute a particular project, the uv project scripts use the name of the corresponding folders. Use the following short hand to execute each project:
 
 * chunk_video_content: ```uv run chunk_video_content```
-* index_file_api: ```uv run chunk_video_content```
-* summarize_video_content: ```uv run chunk_video_content```
+* index_file_api: ```uv run index_file_api```
+* summarize_video_content: ```uv run summarize_video_content```
 
 #### executing a project with a custom env file
 
@@ -29,8 +29,8 @@ To use a custom env file, you can either specify the uv environment variable ```
 For example:
 
 * chunk_video_content: ```uv run chunk_video_content --env-file .env```
-* index_file_api: ```uv run chunk_video_content --env-file .env```
-* summarize_video_content: ```uv run chunk_video_content --env-file .env```
+* index_file_api: ```uv run index_file_api --env-file .env```
+* summarize_video_content: ```uv run summarize_video_content --env-file .env```
 
 ### Running in docker
 
