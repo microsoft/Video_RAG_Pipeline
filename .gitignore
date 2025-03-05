@@ -172,5 +172,5 @@ cython_debug/
 .pypirc
 
 Deployment.yaml
-/infra
 .idea/
+.azure

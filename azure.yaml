@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: video-rag-pipeline
+metadata:
+    template: azd-init@1.12.0
+services:
+    chunk-video-content:
+        project: chunk_video_content
+        host: containerapp
+        language: python
+    index-file-api:
+        project: index_file_api
+        host: containerapp
+        language: python
+    summarize-video-content:
+        project: summarize_video_content
+        host: containerapp
+        language: python
