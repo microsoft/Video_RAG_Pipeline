@@ -15,17 +15,81 @@
         "value": {
           "settings": [
             {
-              "name": "",
-              "value": "${VAR}",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
+              "name": "MP4_OUTPUT_PATH",
+              "value": "${mp4_output_path}",
+              "_comment": "Filesystem path where MP4 output files will be stored"
             },
             {
-              "name": "",
-              "value": "${VAR_S}",
+              "name": "STORAGE_ACCOUNT_NAME",
+              "value": "${storage_account_name}",
+              "_comment": "Azure Storage account name where blobs are stored"
+            },
+            {
+              "name": "STORAGE_CONTAINER_NAME",
+              "value": "${storage_container_name}",
+              "_comment": "Name of the container within the Azure Storage account"
+            },
+            {
+              "name": "INDEX_FILE_QUEUE",
+              "value": "${index_file_queue}",
+              "_comment": "Name of the queue for indexing files"
+            },
+            {
+              "name": "FINALIZE_CONTENT_QUEUE",
+              "value": "${finalize_content_queue}",
+              "_comment": "Name of the queue for finalizing content processing"
+            },
+            {
+              "name": "VIDEO_ANALYZER_NAME",
+              "value": "${video_analyzer_name}",
+              "_comment": "Name of the video analyzer used for processing videos"
+            },
+            {
+              "name": "LOGGING_LEVEL",
+              "value": "${logging_level=ERROR}",
+              "_comment": "Logging level for the application"
+            },
+            {
+              "name": "SERVICE_BUS_NAMESPACE",
+              "value": "${service_bus_namespace}",
               "secret": true,
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR_S} to use the value of 'VAR_S' from the current environment."
+              "_comment": "Fully qualified namespace for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY",
+              "value": "${SERVICE_BUS_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY_NAME",
+              "value": "${SERVICE_BUS_API_KEY_NAME}",
+              "secret": true,
+              "_comment": "API key name for Azure Service Bus"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_ENDPOINT",
+              "value": "${content_understanding_endpoint}",
+              "secret": true,
+              "_comment": "Endpoint URL for the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_KEY",
+              "value": "${content_understanding_key}",
+              "secret": true,
+              "_comment": "Subscription key for authenticating with the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_API_VERSION",
+              "value": "${content_understanding_api_version}",
+              "secret": true,
+              "_comment": "API version for the Content Understanding API"
+            },
+            {
+              "name": "STORAGE_ACCOUNT_API_KEY",
+              "value": "${STORAGE_ACCOUNT_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Storage account"
             }
           ]
         }
@@ -37,17 +101,42 @@
         "value": {
           "settings": [
             {
-              "name": "",
-              "value": "${VAR}",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
+              "name": "HOST",
+              "value": "${host=0.0.0.0}",
+              "_comment": "Host address for the API server"
             },
             {
-              "name": "",
-              "value": "${VAR_S}",
+              "name": "PORT",
+              "value": "${port=8000}",
+              "_comment": "Port number for the API server"
+            },
+            {
+              "name": "INDEX_FILE_QUEUE",
+              "value": "${index_file_queue}",
+              "_comment": "Name of the queue for index files"
+            },
+            {
+              "name": "LOGGING_LEVEL",
+              "value": "${logging_level=ERROR}",
+              "_comment": "Logging level for the application"
+            },
+            {
+              "name": "SERVICE_BUS_NAMESPACE",
+              "value": "${service_bus_namespace}",
               "secret": true,
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR_S} to use the value of 'VAR_S' from the current environment."
+              "_comment": "Fully qualified namespace for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY",
+              "value": "${SERVICE_BUS_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY_NAME",
+              "value": "${SERVICE_BUS_API_KEY_NAME}",
+              "secret": true,
+              "_comment": "API key name for Azure Service Bus"
             }
           ]
         }
@@ -59,17 +148,100 @@
         "value": {
           "settings": [
             {
-              "name": "",
-              "value": "${VAR}",
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR} to use the value of 'VAR' from the current environment."
+              "name": "STORAGE_ACCOUNT_NAME",
+              "value": "${storage_account_name}",
+              "_comment": "Azure Storage account name where blobs are stored"
             },
             {
-              "name": "",
-              "value": "${VAR_S}",
+              "name": "STORAGE_CONTAINER_NAME",
+              "value": "${storage_container_name}",
+              "_comment": "Name of the container within the Azure Storage account"
+            },
+            {
+              "name": "VIDEO_ANALYZER_NAME",
+              "value": "${video_analyzer_name}",
+              "_comment": "Name of the video analyzer used for processing videos"
+            },
+            {
+              "name": "LOGGING_LEVEL",
+              "value": "${logging_level=ERROR}",
+              "_comment": "Logging level for the application"
+            },
+            {
+              "name": "FINALIZE_CONTENT_QUEUE",
+              "value": "${finalize_content_queue}",
+              "_comment": "Name of the queue for finalizing content processing"
+            },
+            {
+              "name": "VIDEO_SUMMARY_QUEUE",
+              "value": "${video_summary_queue}",
+              "_comment": "Name of the queue for video summary tasks"
+            },
+            {
+              "name": "SERVICE_BUS_NAMESPACE",
+              "value": "${service_bus_namespace}",
               "secret": true,
-              "_comment_name": "The name of the environment variable when running in Azure. If empty, ignored.",
-              "_comment_value": "The value to provide. This can be a fixed literal, or an expression like ${VAR_S} to use the value of 'VAR_S' from the current environment."
+              "_comment": "Fully qualified namespace for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY",
+              "value": "${SERVICE_BUS_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY_NAME",
+              "value": "${SERVICE_BUS_API_KEY_NAME}",
+              "secret": true,
+              "_comment": "API key name for Azure Service Bus"
+            },
+            {
+              "name": "AZURE_OPENAI_ENDPOINT",
+              "value": "${azure_openai_endpoint}",
+              "secret": true,
+              "_comment": "Endpoint URL for Azure OpenAI Service"
+            },
+            {
+              "name": "AZURE_OPENAI_KEY",
+              "value": "${AZURE_OPENAI_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure OpenAI Service"
+            },
+            {
+              "name": "AZURE_OPENAI_API_VERSION",
+              "value": "${azure_openai_api_version}",
+              "secret": true,
+              "_comment": "API version for Azure OpenAI Service"
+            },
+            {
+              "name": "AZURE_OPENAI_MODEL_NAME",
+              "value": "${azure_openai_model_name}",
+              "secret": true,
+              "_comment": "Name of the model used in Azure OpenAI Service"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_ENDPOINT",
+              "value": "${content_understanding_endpoint}",
+              "secret": true,
+              "_comment": "Endpoint URL for the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_KEY",
+              "value": "${content_understanding_key}",
+              "secret": true,
+              "_comment": "Subscription key for authenticating with the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_API_VERSION",
+              "value": "${content_understanding_api_version}",
+              "secret": true,
+              "_comment": "API version for the Content Understanding API"
+            },
+            {
+              "name": "STORAGE_ACCOUNT_API_KEY",
+              "value": "${STORAGE_ACCOUNT_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Storage account"
             }
           ]
         }
