@@ -2,10 +2,48 @@
 
 ## Table of Contents
 
+1. [Prerequisite Deployments](#prerequisite-deployments)
 1. [Next Steps](#next-steps)
-2. [What was added](#what-was-added)
-3. [Billing](#billing)
-4. [Troubleshooting](#troubleshooting)
+1. [What was added](#what-was-added)
+1. [Billing](#billing)
+1. [Troubleshooting](#troubleshooting)
+
+## Prerequisite Deployments
+
+### Azure AI Foundry
+
+#### Azure AI Hub
+
+A hub resource needs to be created with a connection to an Azure AI Service in a supported region. The current suggested region is Sweden Central.
+
+#### Azure AI Project
+
+An Azure AI Project needs to be created in the hub with the connected resources.
+
+#### Azure AI Services
+
+A connected AI Service needs to be made available for Content Understanding services to be made available.
+
+#### Azure Open AI Services
+
+An Azure Open AI service needs to be made available with a llm model deployment.
+The current suggested model is gpt-4o
+
+### Azure Storage Account
+
+An Azure Storage Blob account should be created with default configurations.
+A container needs to then be created to act as ephemeral storage for the applications.
+
+### Azure Service Bus
+
+An Azure Service Bus instance needs to be created with 3 different queues.
+
+#### Index Blob Event Queue
+
+#### Upload File Event Queue
+
+#### Video Summarized Event Queue
+
 
 ## Next Steps
 
@@ -24,7 +62,7 @@ Configure environment variables for running services by updating `settings` in [
 1. Create a workflow pipeline file locally. The following starters are available:
    - [Deploy with GitHub Actions](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.github/workflows/azure-dev.yml)
    - [Deploy with Azure Pipelines](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.azdo/pipelines/azure-dev.yml)
-2. Run `azd pipeline config` to configure the deployment pipeline to connect securely to Azure.
+1. Run `azd pipeline config` to configure the deployment pipeline to connect securely to Azure.
 
 ## What was added
 
@@ -59,8 +97,8 @@ If your project does not contain a Dockerfile, we will use [Buildpacks](https://
 To produce and run the docker image locally:
 
 1. Run `azd package` to build the image.
-2. Copy the *Image Tag* shown.
-3. Run `docker run -it <Image Tag>` to run the image locally.
+1. Copy the *Image Tag* shown.
+1. Run `docker run -it <Image Tag>` to run the image locally.
 
 #### Exposed port
 
@@ -80,11 +118,11 @@ Q: I visited the service endpoint listed, and I'm seeing a blank page, a generic
 A: Your service may have failed to start, or it may be missing some configuration settings. To investigate further:
 
 1. Run `azd show`. Click on the link under "View in Azure Portal" to open the resource group in Azure Portal.
-2. Navigate to the specific Container App service that is failing to deploy.
-3. Click on the failing revision under "Revisions with Issues".
-4. Review "Status details" for more information about the type of failure.
-5. Observe the log outputs from Console log stream and System log stream to identify any errors.
-6. If logs are written to disk, use *Console* in the navigation to connect to a shell within the running container.
+1. Navigate to the specific Container App service that is failing to deploy.
+1. Click on the failing revision under "Revisions with Issues".
+1. Review "Status details" for more information about the type of failure.
+1. Observe the log outputs from Console log stream and System log stream to identify any errors.
+1. If logs are written to disk, use *Console* in the navigation to connect to a shell within the running container.
 
 For more troubleshooting information, visit [Container Apps troubleshooting](https://learn.microsoft.com/azure/container-apps/troubleshooting). 
 
