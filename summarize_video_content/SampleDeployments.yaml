@@ -48,6 +48,13 @@ spec:
             secretKeyRef:
               name: content-understanding-key
               key: content-understanding-key
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
       volumes:
         - name: tmp-volume
           emptyDir:

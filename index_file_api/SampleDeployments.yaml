@@ -23,6 +23,13 @@ spec:
           value: "SERVICE_BUS_FULLY_QUALIFIED_NAMESPACE"
         - name: INDEX_FILE_QUEUE
           value: "INDEX_FILE_QUEUE"
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
         ports:
         - containerPort: 8000
 ---
