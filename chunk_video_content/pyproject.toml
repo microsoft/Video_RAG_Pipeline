@@ -12,7 +12,6 @@ dependencies = [
     "azure-storage-blob",
     "pydantic",
     "pydantic-settings",
-    "moviepy",
     "aiofiles",
     "core",
 ]
