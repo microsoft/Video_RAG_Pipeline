@@ -10,6 +10,8 @@
 
 ## Prerequisite Deployments
 
+You need to run ```uv pip lock > requirements.txt``` on each project before running azd up.
+
 ### Azure AI Foundry
 
 #### Azure AI Hub
