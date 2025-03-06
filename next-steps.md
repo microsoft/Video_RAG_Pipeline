@@ -1,0 +1,170 @@
+# Next Steps after `azd init`
+
+## Table of Contents
+
+1. [Prerequisite Deployments](#prerequisite-deployments)
+1. [Next Steps](#next-steps)
+1. [What was added](#what-was-added)
+1. [Billing](#billing)
+1. [Troubleshooting](#troubleshooting)
+
+## Prerequisite Deployments
+
+You need to run ```uv pip lock > requirements.txt``` on each project before running azd up.
+
+### Azure AI Foundry
+
+#### Azure AI Hub
+
+A hub resource needs to be created with a connection to an Azure AI Service in a supported region. The current suggested region is Sweden Central.
+
+#### Azure AI Project
+
+An Azure AI Project needs to be created in the hub with the connected resources.
+
+#### Azure AI Services
+
+A connected AI Service needs to be made available for Content Understanding services to be made available.
+
+##### Content Understanding
+
+Content understanding needs to have a schema and analyzer.
+This can be done through the API, but won't show up in the Online UI. THIS IS A KNOWN BUG.
+To configure through the API, use the following script:
+
+curl:
+
+```
+curl -X PUT -H "Content-Type: application/json" -d @data.json https://{AISERVICESURL}.services.ai.azure.com/contentunderstanding/analyzers/{NAME}?api-version=2024-12-01-preview
+```
+
+data.json:
+
+```
+{
+  "config": {
+    "returnDetails": true,
+    "disableContentFiltering": true
+  },
+  "description": "Sample video analyzer",
+  "scenario": "videoShot",
+  "fieldSchema": {
+    "fields": {
+      "description": {
+        "type": "string",
+        "description": "Write a description of what occurs in the video segment and who the actors are as if it were a screenplay."
+      },
+      "subject": {
+        "type": "string",
+        "description": "Categorize the description to determine the main topic and purpose of the video segment."
+      }
+    }
+  }
+}
+```
+
+#### Azure Open AI Services
+
+An Azure Open AI service needs to be made available with an LLM model deployment.
+The current suggested model is gpt-4o
+
+### Azure Storage Account
+
+An Azure Storage Blob account should be created with default configurations.
+A container needs to then be created to act as ephemeral storage for the applications.
+
+### Azure Service Bus
+
+An Azure Service Bus instance needs to be created with 3 different queues.
+
+#### Index Blob Event Queue
+
+#### Upload File Event Queue
+
+#### Video Summarized Event Queue
+
+
+## Next Steps
+
+### Provision infrastructure and deploy application code
+
+Run `azd up` to provision your infrastructure and deploy to Azure (or run `azd provision` then `azd deploy` to accomplish the tasks separately). Visit the service endpoints listed to see your application up-and-running!
+
+To troubleshoot any issues, see [troubleshooting](#troubleshooting).
+
+### Configure environment variables for running services
+
+Configure environment variables for running services by updating `settings` in [main.parameters.json](./infra/main.parameters.json).
+
+### Configure CI/CD pipeline
+
+1. Create a workflow pipeline file locally. The following starters are available:
+   - [Deploy with GitHub Actions](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.github/workflows/azure-dev.yml)
+   - [Deploy with Azure Pipelines](https://github.com/Azure-Samples/azd-starter-bicep/blob/main/.azdo/pipelines/azure-dev.yml)
+1. Run `azd pipeline config` to configure the deployment pipeline to connect securely to Azure.
+
+## What was added
+
+### Infrastructure configuration
+
+To describe the infrastructure and application, `azure.yaml` along with Infrastructure as Code files using Bicep were added with the following directory structure:
+
+```yaml
+- azure.yaml        # azd project configuration
+- infra/            # Infrastructure-as-code Bicep files
+  - main.bicep      # Subscription level resources
+  - resources.bicep # Primary resource group resources
+  - modules/        # Library modules
+```
+
+The resources declared in [resources.bicep](./infra/resources.bicep) are provisioned when running `azd up` or `azd provision`.
+This includes:
+
+
+- Azure Container App to host the 'chunk-video-content' service.
+- Azure Container App to host the 'index-file-api' service.
+- Azure Container App to host the 'summarize-video-content' service.
+
+More information about [Bicep](https://aka.ms/bicep) language.
+
+### Build from source (no Dockerfile)
+
+#### Build with Buildpacks using Oryx
+
+If your project does not contain a Dockerfile, we will use [Buildpacks](https://buildpacks.io/) using [Oryx](https://github.com/microsoft/Oryx/blob/main/doc/README.md) to create an image for the services in `azure.yaml` and get your containerized app onto Azure.
+
+To produce and run the docker image locally:
+
+1. Run `azd package` to build the image.
+1. Copy the *Image Tag* shown.
+1. Run `docker run -it <Image Tag>` to run the image locally.
+
+#### Exposed port
+
+Oryx will automatically set `PORT` to a default value of `80` (port `8080` for Java). Additionally, it will auto-configure supported web servers such as `gunicorn` and `ASP .NET Core` to listen to the target `PORT`. If your application already listens to the port specified by the `PORT` variable, the application will work out-of-the-box. Otherwise, you may need to perform one of the steps below:
+
+1. Update your application code or configuration to listen to the port specified by the `PORT` variable
+1. (Alternatively) Search for `targetPort` in a .bicep file under the `infra/app` folder, and update the variable to match the port used by the application.
+
+## Billing
+
+Visit the *Cost Management + Billing* page in Azure Portal to track current spend. For more information about how you're billed, and how you can monitor the costs incurred in your Azure subscriptions, visit [billing overview](https://learn.microsoft.com/azure/developer/intro/azure-developer-billing).
+
+## Troubleshooting
+
+Q: I visited the service endpoint listed, and I'm seeing a blank page, a generic welcome page, or an error page.
+
+A: Your service may have failed to start, or it may be missing some configuration settings. To investigate further:
+
+1. Run `azd show`. Click on the link under "View in Azure Portal" to open the resource group in Azure Portal.
+1. Navigate to the specific Container App service that is failing to deploy.
+1. Click on the failing revision under "Revisions with Issues".
+1. Review "Status details" for more information about the type of failure.
+1. Observe the log outputs from Console log stream and System log stream to identify any errors.
+1. If logs are written to disk, use *Console* in the navigation to connect to a shell within the running container.
+
+For more troubleshooting information, visit [Container Apps troubleshooting](https://learn.microsoft.com/azure/container-apps/troubleshooting). 
+
+### Additional information
+
+For additional information about setting up your `azd` project, visit our official [docs](https://learn.microsoft.com/azure/developer/azure-developer-cli/make-azd-compatible?pivots=azd-convert).

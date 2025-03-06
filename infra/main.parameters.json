@@ -1,0 +1,253 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "environmentName": {
+        "value": "${AZURE_ENV_NAME}"
+      },
+      "location": {
+        "value": "${AZURE_LOCATION}"
+      },
+      "chunkVideoContentExists": {
+        "value": "${SERVICE_CHUNK_VIDEO_CONTENT_RESOURCE_EXISTS=false}"
+      },
+      "chunkVideoContentDefinition": {
+        "value": {
+          "settings": [
+            {
+              "name": "MP4_OUTPUT_PATH",
+              "value": "${MP4_OUTPUT_PATH}",
+              "_comment": "Filesystem path where MP4 output files will be stored"
+            },
+            {
+              "name": "STORAGE_ACCOUNT_NAME",
+              "value": "${STORAGE_ACCOUNT_NAME}",
+              "_comment": "Azure Storage account name where blobs are stored"
+            },
+            {
+              "name": "STORAGE_CONTAINER_NAME",
+              "value": "${STORAGE_CONTAINER_NAME}",
+              "_comment": "Name of the container within the Azure Storage account"
+            },
+            {
+              "name": "INDEX_FILE_QUEUE",
+              "value": "${INDEX_FILE_QUEUE}",
+              "_comment": "Name of the queue for indexing files"
+            },
+            {
+              "name": "FINALIZE_CONTENT_QUEUE",
+              "value": "${FINALIZE_CONTENT_QUEUE}",
+              "_comment": "Name of the queue for finalizing content processing"
+            },
+            {
+              "name": "VIDEO_ANALYZER_NAME",
+              "value": "${VIDEO_ANALYZER_NAME}",
+              "_comment": "Name of the video analyzer used for processing videos"
+            },
+            {
+              "name": "LOGGING_LEVEL",
+              "value": "${LOGGING_LEVEL=ERROR}",
+              "_comment": "Logging level for the application"
+            },
+            {
+              "name": "SERVICE_BUS_NAMESPACE",
+              "value": "${SERVICE_BUS_NAMESPACE}",
+              "secret": true,
+              "_comment": "Fully qualified namespace for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY",
+              "value": "${SERVICE_BUS_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY_NAME",
+              "value": "${SERVICE_BUS_API_KEY_NAME}",
+              "secret": true,
+              "_comment": "API key name for Azure Service Bus"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_ENDPOINT",
+              "value": "${CONTENT_UNDERSTANDING_ENDPOINT}",
+              "secret": true,
+              "_comment": "Endpoint URL for the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_KEY",
+              "value": "${CONTENT_UNDERSTANDING_KEY}",
+              "secret": true,
+              "_comment": "Subscription key for authenticating with the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_API_VERSION",
+              "value": "${CONTENT_UNDERSTANDING_API_VERSION}",
+              "secret": true,
+              "_comment": "API version for the Content Understanding API"
+            },
+            {
+              "name": "STORAGE_ACCOUNT_API_KEY",
+              "value": "${STORAGE_ACCOUNT_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Storage account"
+            }
+          ]
+        }
+      },
+      "indexFileApiExists": {
+        "value": "${SERVICE_INDEX_FILE_API_RESOURCE_EXISTS=false}"
+      },
+      "indexFileApiDefinition": {
+        "value": {
+          "settings": [
+            {
+              "name": "HOST",
+              "value": "${HOST=0.0.0.0}",
+              "_comment": "Host address for the API server"
+            },
+            {
+              "name": "PORT",
+              "value": "${PORT=8000}",
+              "_comment": "Port number for the API server"
+            },
+            {
+              "name": "INDEX_FILE_QUEUE",
+              "value": "${INDEX_FILE_QUEUE}",
+              "_comment": "Name of the queue for index files"
+            },
+            {
+              "name": "LOGGING_LEVEL",
+              "value": "${LOGGING_LEVEL=ERROR}",
+              "_comment": "Logging level for the application"
+            },
+            {
+              "name": "SERVICE_BUS_NAMESPACE",
+              "value": "${SERVICE_BUS_NAMESPACE}",
+              "secret": true,
+              "_comment": "Fully qualified namespace for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY",
+              "value": "${SERVICE_BUS_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY_NAME",
+              "value": "${SERVICE_BUS_API_KEY_NAME}",
+              "secret": true,
+              "_comment": "API key name for Azure Service Bus"
+            }
+          ]
+        }
+      },
+      "summarizeVideoContentExists": {
+        "value": "${SERVICE_SUMMARIZE_VIDEO_CONTENT_RESOURCE_EXISTS=false}"
+      },
+      "summarizeVideoContentDefinition": {
+        "value": {
+          "settings": [
+            {
+              "name": "STORAGE_ACCOUNT_NAME",
+              "value": "${STORAGE_ACCOUNT_NAME}",
+              "_comment": "Azure Storage account name where blobs are stored"
+            },
+            {
+              "name": "STORAGE_CONTAINER_NAME",
+              "value": "${STORAGE_CONTAINER_NAME}",
+              "_comment": "Name of the container within the Azure Storage account"
+            },
+            {
+              "name": "VIDEO_ANALYZER_NAME",
+              "value": "${VIDEO_ANALYZER_NAME}",
+              "_comment": "Name of the video analyzer used for processing videos"
+            },
+            {
+              "name": "LOGGING_LEVEL",
+              "value": "${LOGGING_LEVEL=ERROR}",
+              "_comment": "Logging level for the application"
+            },
+            {
+              "name": "FINALIZE_CONTENT_QUEUE",
+              "value": "${FINALIZE_CONTENT_QUEUE}",
+              "_comment": "Name of the queue for finalizing content processing"
+            },
+            {
+              "name": "VIDEO_SUMMARY_QUEUE",
+              "value": "${VIDEO_SUMMARY_QUEUE}",
+              "_comment": "Name of the queue for video summary tasks"
+            },
+            {
+              "name": "SERVICE_BUS_NAMESPACE",
+              "value": "${SERVICE_BUS_NAMESPACE}",
+              "secret": true,
+              "_comment": "Fully qualified namespace for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY",
+              "value": "${SERVICE_BUS_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Service Bus"
+            },
+            {
+              "name": "SERVICE_BUS_API_KEY_NAME",
+              "value": "${SERVICE_BUS_API_KEY_NAME}",
+              "secret": true,
+              "_comment": "API key name for Azure Service Bus"
+            },
+            {
+              "name": "AZURE_OPENAI_ENDPOINT",
+              "value": "${AZURE_OPENAI_ENDPOINT}",
+              "secret": true,
+              "_comment": "Endpoint URL for Azure OpenAI Service"
+            },
+            {
+              "name": "AZURE_OPENAI_KEY",
+              "value": "${AZURE_OPENAI_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure OpenAI Service"
+            },
+            {
+              "name": "AZURE_OPENAI_API_VERSION",
+              "value": "${AZURE_OPENAI_API_VERSION}",
+              "secret": true,
+              "_comment": "API version for Azure OpenAI Service"
+            },
+            {
+              "name": "AZURE_OPENAI_MODEL_NAME",
+              "value": "${AZURE_OPENAI_MODEL_NAME}",
+              "secret": true,
+              "_comment": "Name of the model used in Azure OpenAI Service"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_ENDPOINT",
+              "value": "${CONTENT_UNDERSTANDING_ENDPOINT}",
+              "secret": true,
+              "_comment": "Endpoint URL for the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_KEY",
+              "value": "${CONTENT_UNDERSTANDING_KEY}",
+              "secret": true,
+              "_comment": "Subscription key for authenticating with the Content Understanding API"
+            },
+            {
+              "name": "CONTENT_UNDERSTANDING_API_VERSION",
+              "value": "${CONTENT_UNDERSTANDING_API_VERSION}",
+              "secret": true,
+              "_comment": "API version for the Content Understanding API"
+            },
+            {
+              "name": "STORAGE_ACCOUNT_API_KEY",
+              "value": "${STORAGE_ACCOUNT_API_KEY}",
+              "secret": true,
+              "_comment": "API key for Azure Storage account"
+            }
+          ]
+        }
+      },
+      "principalId": {
+        "value": "${AZURE_PRINCIPAL_ID}"
+      }
+    }
+}
