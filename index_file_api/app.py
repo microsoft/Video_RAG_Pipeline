@@ -92,7 +92,10 @@ async def process_payload(
         
         # Generate a unique correlation ID
         correlation_id = payload.id or uuid.uuid4()
-        logger.info("Generated correlation ID: %s", correlation_id)
+        trace_id = uuid.uuid4()
+
+        logger.info("Generated message with correlation ID: %s", correlation_id)
+        logger.info("Generated trace ID: %s", trace_id)
 
         # Validate mime type from the url
         url_mime_type = await extract_file_type(payload.fileUrl)
@@ -115,6 +118,7 @@ async def process_payload(
         # Send the message to the Azure Service Bus queue
         await service_bus_messaging_service.send_message(
             correlation_id=correlation_id,
+            trace_id=trace_id,
             body=json_string,
             queue_name=settings.index_file_queue,
         )
