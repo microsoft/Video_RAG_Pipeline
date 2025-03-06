@@ -26,7 +26,7 @@ A connected AI Service needs to be made available for Content Understanding serv
 
 #### Azure Open AI Services
 
-An Azure Open AI service needs to be made available with a llm model deployment.
+An Azure Open AI service needs to be made available with an LLM model deployment.
 The current suggested model is gpt-4o
 
 ### Azure Storage Account
