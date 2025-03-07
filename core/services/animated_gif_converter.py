@@ -30,7 +30,6 @@ class AnimatedGifConverter():
         :param url: URL of the GIF to download
         :param save_path: Local file path to save the downloaded GIF
         """
-        is_uploaded = True  # Sets the bool to uploaded
 
         async with self.client_session.get(url) as response:
             response.raise_for_status()

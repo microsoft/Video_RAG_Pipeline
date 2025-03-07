@@ -70,7 +70,7 @@ class MessageHandler():
                     gif_path = os.path.join(self.gif_converter.download_dir, file_name)
                     mp4_path = await self.gif_converter.download_and_convert_gif(blob_metadata.fileUrl, file_name)
                     file_name = file_name.replace(".gif", ".mp4")
-                    is_uploaded = True  # Sets the bool to uploaded
+                    is_uploaded = True
 
                     # Upload the converted MP4 to Azure Blob Storage and update the file URL
                     blob_metadata.fileUrl = await self.blob_upload_service.upload_to_azure_blob(
