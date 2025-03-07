@@ -9,10 +9,10 @@ from core import (
     EventMessagingService,
     ContentUnderstandingClient,
     AnimatedGifConverter,
-    AzureBlobFileUploadService
+    AzureBlobFileUploadService,
+    get_file_name_from_url,
+    is_file_type,
 )
-
-from core.utils import get_file_name_from_url, is_file_type
 
 class MessageHandler():
 
@@ -23,7 +23,6 @@ class MessageHandler():
         content_understanding_client: ContentUnderstandingClient,
         blob_upload_service: AzureBlobFileUploadService,
         finalize_content_queue_name: str,
-
     ):
         """
         Creates an asynchronous message handler function for processing incoming Service Bus messages.

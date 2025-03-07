@@ -1,7 +1,6 @@
 import logging
 
 from dependency_injector import containers, providers
-
 from core import (
     create_azure_credential,
     create_service_bus_client,
@@ -11,9 +10,7 @@ from core import (
     AnimatedGifConverter,
     AzureBlobFileUploadService,
 )
-
-from chunk_video_content.message_handler import MessageHandler
-
+from .message_handler import MessageHandler
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()

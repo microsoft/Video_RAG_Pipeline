@@ -15,7 +15,7 @@ from core import (
     AzureBlobFileUploadService
 )
 
-from core.utils import get_file_name_from_url
+from core import get_file_name_from_url
 
 logger = logging.getLogger(__name__)
 

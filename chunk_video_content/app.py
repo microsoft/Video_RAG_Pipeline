@@ -4,9 +4,9 @@ import logging
 from dotenv import load_dotenv
 from dependency_injector.wiring import inject, Provide
 
-from chunk_video_content.settings import AppSettings
-from chunk_video_content.container import Container
-from chunk_video_content.message_handler import MessageHandler
+from .settings import AppSettings
+from .container import Container
+from .message_handler import MessageHandler
 
 from core import EventMessagingService
 
