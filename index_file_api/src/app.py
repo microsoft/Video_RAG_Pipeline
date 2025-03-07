@@ -96,7 +96,6 @@ async def process_payload(
         logger.error("An unexpected error occurred: %s", e)
         raise HTTPException(status_code=500, detail=f"Server error.")
 
-
 def main():
     import uvicorn
 
@@ -112,7 +111,6 @@ def main():
         host=host,
         port=port
     )
-
 
 if __name__ == "__main__":
     main()

@@ -13,6 +13,19 @@ dependencies = [
     "dependency-injector"
 ]
 
+[tool.setuptools]
+packages = [ "core" ]
+
+[tool.setuptools.package-dir]
+core = "src"
+"core.models" = "src/models"
+"core.services" = "src/services"
+
+# [tool.setuptools.packages.find]
+# where = ["src"]
+# exclude = ["tests"]
+# namespaces = false
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

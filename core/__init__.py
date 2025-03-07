@@ -1,7 +1,7 @@
-from src.models import *
-from src.services import *
-import src.models as models
-import src.services as services
+from core.src.models import *
+from core.src.services import *
+import core.src.models as models
+import core.src.services as services
 __all__ = [
     "models",
     "services",
