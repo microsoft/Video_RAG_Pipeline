@@ -3,9 +3,15 @@ import logging
 from dependency_injector import containers, providers
 from openai import AzureOpenAI
 
-from core import create_service_bus_client, create_azure_credential, create_token_provider
-from core.services import ServiceBusEventMessagingService, ContentUnderstandingClient, AzureBlobFileUploadService, \
+from core import (
+    create_service_bus_client,
+    create_azure_credential,
+    create_token_provider, 
+    ServiceBusEventMessagingService,
+    ContentUnderstandingClient,
+    AzureBlobFileUploadService, 
     create_content_understanding_http_client_session
+)
 
 from summarize_video_content.message_handler import MessageHandler
 

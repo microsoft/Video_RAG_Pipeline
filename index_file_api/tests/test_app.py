@@ -11,7 +11,7 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 # Now try the import
-from src.app import app
+from index_file_api.src import app
 
 def test_app():
     assert False

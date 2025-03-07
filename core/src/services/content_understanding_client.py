@@ -2,9 +2,7 @@ import aiohttp
 import logging
 from typing import Optional
 
-from core.models import ContentResult
-
-
+from ..models import ContentResult
 
 class ContentUnderstandingClient:
     """

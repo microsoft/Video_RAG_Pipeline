@@ -2,9 +2,10 @@ import logging
 
 from dependency_injector import containers, providers
 
-from core import create_service_bus_client, create_azure_credential
-from core.services import ServiceBusEventMessagingService
-
+from core import (
+    create_service_bus_client,
+    create_azure_credential,
+    ServiceBusEventMessagingService)
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()

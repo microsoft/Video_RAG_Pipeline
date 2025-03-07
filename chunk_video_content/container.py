@@ -2,9 +2,15 @@ import logging
 
 from dependency_injector import containers, providers
 
-from core import create_azure_credential, create_service_bus_client, create_content_understanding_http_client_session
-from core.services import ServiceBusEventMessagingService, ContentUnderstandingClient, AnimatedGifConverter, \
-    AzureBlobFileUploadService
+from core import (
+    create_azure_credential,
+    create_service_bus_client,
+    create_content_understanding_http_client_session,
+    ServiceBusEventMessagingService,
+    ContentUnderstandingClient,
+    AnimatedGifConverter,
+    AzureBlobFileUploadService,
+)
 
 from chunk_video_content.message_handler import MessageHandler
 

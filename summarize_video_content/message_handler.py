@@ -6,14 +6,18 @@ import uuid
 from azure.servicebus import ServiceBusMessage
 from openai import AzureOpenAI
 
-from core import ContentResult, SummarizedVideoMetadata, ServiceBusEventMessagingService
-from core.models import VideoUploadMetadata
-from core.services import ContentUnderstandingClient, AzureBlobFileUploadService
+from core import (
+    ContentResult,
+    SummarizedVideoMetadata,
+    ServiceBusEventMessagingService,
+    VideoUploadMetadata,
+    ContentUnderstandingClient,
+    AzureBlobFileUploadService
+)
 
 from core.utils import get_file_name_from_url
 
 logger = logging.getLogger(__name__)
-
 
 class MessageHandler:
 

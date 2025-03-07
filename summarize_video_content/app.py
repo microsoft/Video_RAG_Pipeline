@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 
 from core import ServiceBusEventMessagingService
 
-from summarize_video_content.container import Container
-from summarize_video_content.message_handler import MessageHandler
-from summarize_video_content.settings import AppSettings
+from .container import Container
+from .message_handler import MessageHandler
+from .settings import AppSettings
 
 # Load environment variables from a .env file
 load_dotenv()
@@ -25,7 +25,6 @@ logging.basicConfig(
 
 # Initialize an asyncio event to signal when to stop processing messages
 stop_event = asyncio.Event()
-
 
 @inject
 async def main_logic(
@@ -53,7 +52,6 @@ async def main_logic(
     except Exception as e:
         # Log any other exceptions that occur during the main loop
         logging.error(f"Error in main loop: {e}", exc_info=True)
-
 
 async def setup_container():
     """

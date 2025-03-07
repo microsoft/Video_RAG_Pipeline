@@ -3,8 +3,14 @@ import aiohttp
 import uuid
 
 from azure.servicebus import ServiceBusMessage
-from core.models import BlobMetadata, VideoUploadMetadata
-from core.services import EventMessagingService, ContentUnderstandingClient, AnimatedGifConverter, AzureBlobFileUploadService
+from core import (
+    BlobMetadata,
+    VideoUploadMetadata,
+    EventMessagingService,
+    ContentUnderstandingClient,
+    AnimatedGifConverter,
+    AzureBlobFileUploadService
+)
 
 from core.utils import get_file_name_from_url, is_file_type
 

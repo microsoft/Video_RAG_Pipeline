@@ -2,7 +2,6 @@ import logging
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
-
 class AppSettings(BaseSettings):
     """
     AppSettings manages the configuration settings for the application.

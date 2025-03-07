@@ -7,13 +7,12 @@ from dotenv import load_dotenv
 
 from fastapi import FastAPI, HTTPException, Depends
 
-from core import ServiceBusEventMessagingService
+from core import ServiceBusEventMessagingService, BlobMetadata
 
 from .container import Container
 from .models import Payload
 from .settings import AppSettings
 
-from core.models import BlobMetadata
 
 # Load environment variables from the .env file
 load_dotenv()
