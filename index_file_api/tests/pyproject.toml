@@ -11,20 +11,31 @@ dependencies = [
     "pytest-asyncio",
     "httpx",
     "fastapi",
-    "src",
     "core",
+    "src",
 ]
 
 [tool.uv.sources]
-src = { path = "../src" }
 core = { path = "../../core" }
+src = { workspace = true }
+
+[tool.uv.workspace]
+members = [
+    "core",
+    "src",
+]
 
 [tool.pytest.ini_options]
+testpaths = ["."]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
 pythonpath = [
     ".",
     "..",
 ]
-testpaths = ["."]
+log_cli = true
+log_cli_level = "INFO"
 
 [tool.hatch.build.targets.wheel]
 packages = ["index_file_api"]

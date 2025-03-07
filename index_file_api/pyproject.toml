@@ -25,7 +25,6 @@ test = [
 
 [tool.uv.sources]
 core = { workspace = true }
-index_file_api = { path = "src" }
 
 [build-system]
 requires = ["hatchling"]
@@ -33,16 +32,3 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["index_file_api"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
-pythonpath = [
-    ".",
-    "src",
-    "tests",
-]
-log_cli = true
-log_cli_level = "INFO"
