@@ -77,7 +77,7 @@ class MessageHandler():
                         blob_name=file_name
                     )
                 except Exception as e:
-                    logging.error(f"Error converting GIF to MP4: {e}", exc_info=True)
+                    self.logger.error(f"Error converting GIF to MP4: {e}", exc_info=True)
                     raise
                 finally:
                     # Delete the GIF and mp4 files after conversion and upload
@@ -95,7 +95,7 @@ class MessageHandler():
             video_id = await self.content_understanding_client.upload_url(
                 content_url=blob_metadata.fileUrl
             )
-            logging.info(f'Video ID: {video_id}')
+            self.logger.info(f'Video ID: {video_id}')
 
             # Create metadata for the video upload and send it to the finalize content queue
             video_upload_metadata = VideoUploadMetadata(
@@ -114,9 +114,9 @@ class MessageHandler():
             )
 
             # Log that the message has been successfully sent
-            logging.info("Message sent")
+            self.logger.info("Message sent")
         except aiohttp.ClientError as aio_err:
-            logging.error(f"Async HTTP error: {aio_err}", exc_info=True)
+            self.logger.error(f"Async HTTP error: {aio_err}", exc_info=True)
         except Exception as e:
-            logging.error(f"Unexpected error processing message: {e}", exc_info=True)
+            self.logger.error(f"Unexpected error processing message: {e}", exc_info=True)
             
