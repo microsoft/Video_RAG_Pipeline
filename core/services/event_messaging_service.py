@@ -9,7 +9,8 @@ class EventMessagingService(Protocol):
             self,
             queue_name: str,
             body: str,
-            correlation_id: uuid.UUID = None
+            correlation_id: uuid.UUID = None,
+            trace_id: uuid.UUID = None
     ) -> uuid.UUID:
         """
         Sends a message to a specified queue.
@@ -19,6 +20,8 @@ class EventMessagingService(Protocol):
             body (str): The content of the message.
             correlation_id (uuid.UUID, optional): An optional UUID to correlate messages.
                                                   If not provided, a new UUID is generated.
+            trace_id (uuid.UUID, optional): An optional UUID to trace messages.
+                                             If not provided, a new UUID is generated.
 
         Returns:
             uuid.UUID: The correlation ID of the sent message.
@@ -29,7 +32,8 @@ class EventMessagingService(Protocol):
             queue_name: str,
             body: str,
             schedule_time_utc: datetime,
-            correlation_id: uuid.UUID = None
+            correlation_id: uuid.UUID = None,
+            trace_id: uuid.UUID = None
     ) -> uuid.UUID:
         """
         Schedules a message to be sent to a specified queue at a future time.
@@ -40,6 +44,8 @@ class EventMessagingService(Protocol):
             schedule_time_utc (datetime): The UTC datetime when the message should be enqueued.
             correlation_id (uuid.UUID, optional): An optional UUID to correlate messages.
                                                     If not provided, a new UUID is generated.
+            trace_id (uuid.UUID, optional): An optional UUID to trace messages.
+                                             If not provided, a new UUID is generated.
 
         Returns:
             uuid.UUID: The correlation ID of the scheduled message.

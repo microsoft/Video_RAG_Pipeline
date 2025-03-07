@@ -1,11 +1,13 @@
 import uuid
 import logging
 import asyncio
+import mimetypes
+import requests
 
 from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Header
 
 from core import ServiceBusEventMessagingService
 
@@ -52,7 +54,31 @@ async def stop_container_resources():
     """
     await container.shutdown_resources()
 
+async def extract_file_type(file_url: str) -> str:
+    """
+    Extracts the file type from the given URL.
 
+    Args:
+        file_url (str): The URL of the file.
+
+    Returns:
+        str: The MIME type of the file.
+    """
+    url_mime_type, _ = mimetypes.guess_type(file_url)
+    logger.info("Received content type header: %s", url_mime_type)
+    
+    if not url_mime_type:
+        logger.info("Attempting to fetch content type from URL headers")
+        # Use HEAD request to avoid downloading the entire file
+        response = requests.head(file_url, timeout=10)
+        if response.status_code == 200 and 'content-type' in response.headers:
+            url_mime_type = response.headers['content-type'].split(';')[0].strip()
+            logger.info("Retrieved content-type from header: %s", url_mime_type)
+        else:
+            logger.warning("Failed to get content-type from headers: HTTP %s", response.status_code)
+
+    return url_mime_type
+    
 # Define an endpoint to process payloads
 @app.post("/process")
 @inject
@@ -63,11 +89,25 @@ async def process_payload(
 ):
     try:
         logger.info("Received payload for processing")
-
+        
         # Generate a unique correlation ID
         correlation_id = payload.id or uuid.uuid4()
-        logger.info("Generated correlation ID: %s", correlation_id)
+        trace_id = uuid.uuid4()
 
+        logger.info("Generated message with correlation ID: %s", correlation_id)
+        logger.info("Generated trace ID: %s", trace_id)
+
+        # Validate mime type from the url
+        url_mime_type = await extract_file_type(payload.fileUrl)
+        logger.info("Received content type header: %s", url_mime_type)
+        
+        if url_mime_type not in settings.allowed_mime_types:
+            logger.error("Invalid content type: %s", url_mime_type)
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid content type."
+            )
+    
         # Create blob metadata based on the provided payload
         blob_metadata = BlobMetadata(fileUrl=payload.fileUrl)
 
@@ -78,6 +118,7 @@ async def process_payload(
         # Send the message to the Azure Service Bus queue
         await service_bus_messaging_service.send_message(
             correlation_id=correlation_id,
+            trace_id=trace_id,
             body=json_string,
             queue_name=settings.index_file_queue,
         )

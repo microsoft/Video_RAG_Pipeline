@@ -13,6 +13,7 @@ dependencies = [
     "python-dotenv",
     "aiohttp",
     "pydantic-settings",
+    "dependency_injector",
     "core",
 ]
 
