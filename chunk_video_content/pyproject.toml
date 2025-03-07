@@ -6,14 +6,13 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "aiohttp",
+    "aiofiles",
     "azure-servicebus",
+    "azure-storage-blob",
     "azure-identity",
     "python-dotenv",
-    "azure-storage-blob",
-    "pydantic",
     "pydantic-settings",
     "moviepy",
-    "aiofiles",
     "core",
 ]
 
@@ -25,6 +24,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = [
-    "core",
-]
+packages = ["chunk_video_content"]

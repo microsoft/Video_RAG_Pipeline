@@ -3,6 +3,10 @@ name = "video-indexer"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
+    "azure-servicebus>=7.14.0",
+    "azure-identity>=1.20.0",
+    "azure-storage-blob>=12.24.1",
+    "core",
     "index_file_api",
     "summarize_video_content",
     "chunk_video_content",
@@ -31,10 +35,45 @@ members = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = [
     "core",
     "index_file_api",
     "summarize_video_content",
     "chunk_video_content",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = []
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+pythonpath = [
+    "."
+]
+markers = [
+    "asyncio: mark a test as an asyncio test",
+    "unit: mark test as a unit test",
+    "integration: mark test as an integration test"
+]
+log_cli = true
+log_cli_level = "INFO"
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
 ]
