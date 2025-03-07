@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "index_file_api_tests"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+    "fastapi",
+    "src",
+    "core",
+]
+
+[tool.uv.sources]
+src = { path = "../src" }
+core = { path = "../../core" }
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".",
+    "..",
+]
+testpaths = ["."]
+
+[tool.hatch.build.targets.wheel]
+packages = ["index_file_api"]

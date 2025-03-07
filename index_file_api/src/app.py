@@ -9,9 +9,9 @@ from fastapi import FastAPI, HTTPException, Depends
 
 from core import ServiceBusEventMessagingService
 
-from index_file_api.container import Container
-from index_file_api.models import Payload
-from index_file_api.settings import AppSettings
+from .container import Container
+from .models import Payload
+from .settings import AppSettings
 
 from core.models import BlobMetadata
 
