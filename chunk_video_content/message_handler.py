@@ -57,6 +57,7 @@ class MessageHandler():
 
             # Extract the correlation ID from the message properties
             correlation_id: uuid.UUID = message.application_properties.get(b"correlationId", None)
+            trace_id: uuid.UUID = message.application_properties.get(b"traceId", None)
 
             blob_metadata = BlobMetadata.model_validate_json(message_content)
             file_name = get_file_name_from_url(blob_metadata.fileUrl)  # Extract the file name from the URL
@@ -95,7 +96,8 @@ class MessageHandler():
             await self.event_messaging_service.send_message(
                 queue_name=self.finalize_content_queue_name,
                 body=json_string,
-                correlation_id=correlation_id
+                correlation_id=correlation_id,
+                trace_id=trace_id
             )
 
             # Log that the message has been successfully sent

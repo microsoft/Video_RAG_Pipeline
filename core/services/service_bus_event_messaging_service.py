@@ -36,7 +36,8 @@ class ServiceBusEventMessagingService:
             self,
             queue_name: str,
             body: str,
-            correlation_id: uuid.UUID = None
+            correlation_id: uuid.UUID = None,
+            trace_id: uuid.UUID = None
     ) -> uuid.UUID:
         """
         Sends a message to a specified Service Bus queue.
@@ -45,6 +46,8 @@ class ServiceBusEventMessagingService:
             queue_name (str): The name of the queue to send the message to.
             body (str): The content of the message.
             correlation_id (uuid.UUID, optional): An optional UUID to correlate messages.
+                                                  If not provided, a new UUID is generated.
+            trace_id (uuid.UUID, optional): An optional UUID to trace messages.
                                                   If not provided, a new UUID is generated.
 
         Returns:
@@ -56,8 +59,14 @@ class ServiceBusEventMessagingService:
                 correlation_id = uuid.uuid4()
                 self.logger.debug(f"Generated new Correlation ID: {correlation_id}")
 
-                # Define application-specific properties for the message
-            application_properties = {"correlationId": correlation_id}
+            # Generate a new trace_id ID if not provided
+            if trace_id is None:
+                trace_id = uuid.uuid4()
+                self.logger.debug(f"Generated new Trace ID: {trace_id}")
+
+
+            # Define application-specific properties for the message
+            application_properties = {"correlationId": correlation_id, "traceId": trace_id}
 
             # Asynchronously create a sender for the specified queue
             async with self.service_bus_client.get_queue_sender(queue_name) as sender:
@@ -69,7 +78,7 @@ class ServiceBusEventMessagingService:
 
                 # Send the message asynchronously
                 await sender.send_messages(message)
-                self.logger.info(f"Message sent to queue '{queue_name}' with Correlation ID: {correlation_id}")
+                self.logger.info(f"Message sent to queue '{queue_name}' with Correlation ID: {correlation_id} and Trace ID: {trace_id}")
 
             return correlation_id
         except Exception as e:
@@ -81,7 +90,8 @@ class ServiceBusEventMessagingService:
             queue_name: str,
             body: str,
             schedule_time_utc: datetime,
-            correlation_id: uuid.UUID = None
+            correlation_id: uuid.UUID = None,
+            trace_id: uuid.UUID = None
     ) -> uuid.UUID:
         """
         Schedules a message to be sent to a specified Service Bus queue at a future time.
@@ -91,6 +101,8 @@ class ServiceBusEventMessagingService:
             body (str): The content of the message.
             schedule_time_utc (datetime): The UTC datetime when the message should be enqueued.
             correlation_id (uuid.UUID, optional): An optional UUID to correlate messages.
+                                                  If not provided, a new UUID is generated.
+            trace_id (uuid.UUID, optional): An optional UUID to trace messages.
                                                   If not provided, a new UUID is generated.
 
         Returns:
@@ -102,8 +114,13 @@ class ServiceBusEventMessagingService:
                 correlation_id = uuid.uuid4()
                 self.logger.debug(f"Generated new Correlation ID: {correlation_id}")
 
-                # Define application-specific properties for the message
-            application_properties = {"correlationId": correlation_id}
+            # Generate a new trace_id ID if not provided
+            if trace_id is None:
+                trace_id = uuid.uuid4()
+                self.logger.debug(f"Generated new Trace ID: {trace_id}")
+
+            # Define application-specific properties for the message
+            application_properties = {"correlationId": correlation_id, "traceId": trace_id}
 
             # Asynchronously create a sender for the specified queue
             async with self.service_bus_client.get_queue_sender(queue_name) as sender:
@@ -162,9 +179,10 @@ class ServiceBusEventMessagingService:
                                 renewer.register(receiver, msg)
 
                                 correlation_id = msg.application_properties.get(b"correlationId")
+                                trace_id = msg.application_properties.get(b"traceId")
 
                                 self.logger.info(
-                                    f"Processing message with Correlation ID: {correlation_id}"
+                                    f"Processing message with Correlation ID: {correlation_id} and Trace ID: {trace_id}"
                                 )
 
                                 # Delegate processing to the provided message_handler coroutine
@@ -173,7 +191,7 @@ class ServiceBusEventMessagingService:
                                 # Complete the message to remove it from the queue
                                 await receiver.complete_message(message=msg)
                                 self.logger.info(
-                                    f"Message with Correlation ID: {correlation_id} completed."
+                                    f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} completed."
                                 )
 
                             except RetryQueueingException as e:
@@ -191,12 +209,13 @@ class ServiceBusEventMessagingService:
                                 self.logger.info("Message requeued successfully.")
                             except FatalQueueingException or Exception as e:
                                 correlation_id = msg.application_properties.get(b"correlationId")
+                                trace_id = msg.application_properties.get(b"traceId")
                                 self.logger.exception(
-                                    f"Error processing message with Correlation ID: {correlation_id}: {e}")
+                                    f"Error processing message with Correlation ID: {correlation_id} and Trace ID: {trace_id}: {e}")
                                 # Optionally, abandon the message to make it available for reprocessing
                                 await receiver.abandon_message(message=msg)
                                 self.logger.info(
-                                    f"Message with Correlation ID: {correlation_id} abandoned."
+                                    f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} abandoned."
                                 )
 
                 finally:

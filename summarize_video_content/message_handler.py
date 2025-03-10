@@ -68,6 +68,7 @@ class MessageHandler:
         # Access the message body appropriately
         message_content: str = str(message)
         correlation_id: uuid.UUID = message.application_properties.get("correlationId", None)
+        trace_id: uuid.UUID = message.application_properties.get("traceId", None)
 
         # Deserialize the message content into a VideoUploadMetadata object
         video_upload_metadata = VideoUploadMetadata.model_validate_json(message_content)
@@ -108,7 +109,8 @@ class MessageHandler:
             await self.service_bus_messaging_service.send_message(
                 queue_name=self.video_summary_queue_name,
                 body=json_string,
-                correlation_id=correlation_id
+                correlation_id=correlation_id,
+                trace_id=trace_id
             )
 
             if video_upload_metadata.isUploaded:
