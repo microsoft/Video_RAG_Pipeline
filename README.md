@@ -6,7 +6,8 @@ The Video RAG Pipeline is a reactive video processing system built from three in
 2. **chunk_video_content**: Downloads and processes video files. If the file is a GIF then the process downloads the file, uploads it to Azure Blob Storage, and forwards content URLs for analysis. For MP4 files, the files are sent directly for analysis. We utilize either the url extension or the content-type for the file format.
 3. **summarize_video_content**: Retrieves processed content, invokes the Azure OpenAI service in a two-stage approach (first summarization then consolidation), and produces a final summary.
 
-## Project Settings
+## Project Architecture
+![Architecture Diagram](assets/architecture.png)
 
 ### index_file_api
 Index File API serves as the entry point for the Video RAG Pipeline. It exposes a RESTful API endpoint that accepts incoming file URLs, validates the content type, and constructs blob metadata for further processing. The service is built on asynchronous frameworks with dependency injection to ensure modularity and resilience, and it appends unique correlation and trace identifiers for robust tracking in downstream operations. After validating the payload, the metadata is enqueued to an Azure Service Bus queue to trigger subsequent processing by other microservices. Overall, this component ensures reliable ingestion and initial transformation of file data for the entire pipeline.
