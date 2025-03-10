@@ -13,7 +13,7 @@ from core import (
     create_content_understanding_http_client_session
 )
 
-from summarize_video_content.message_handler import MessageHandler
+from .message_handler import MessageHandler
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
