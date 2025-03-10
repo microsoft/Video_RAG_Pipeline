@@ -87,6 +87,7 @@ The summarize_video_content service is designed to generate a comprehensive yet 
 - **Azure Cognitive Services:** For content analysis and understanding.
 - **Azure OpenAI Service:** To generate and consolidate video summaries.
 - **Azure Container Apps or AKS:** Hosts individual microservices in containerized environments.
+- **Content Understanding:** Used to analyze video content including transcripts.
 
 ## Additional Information
 - Update the `.env` file with appropriate values for each setting.
