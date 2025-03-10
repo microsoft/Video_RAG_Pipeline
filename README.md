@@ -43,7 +43,9 @@ The chunk_video_content service efficiently handles video ingestion and processi
 - `finalize_content_queue`: Queue utilized for final content processing.
 - `content_understanding_endpoint`, `content_understanding_key`, `content_understanding_api_version`: Parameters for the content understanding service.
 - `video_analyzer_name`: Video analyzer service identifier.
-- `storage_account_name`, `storage_container_name`, `storage_account_api_key`: Azure Blob Storage configurations.
+- `storage_account_name`: Storage account name for storing gifs.
+- `storage_container_name`: Storage account container name to save gifs to.
+- `storage_account_api_key`: Storage account key (optional if you are using a managed identity).
 - `mp4_output_path`: Filesystem path for temporary MP4 files.
 - `logging_level`: Diagnostic logging level.
 
