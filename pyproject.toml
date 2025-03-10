@@ -2,17 +2,29 @@
 name = "video-indexer"
 version = "0.1.0"
 requires-python = ">=3.10"
-dependencies = [
-    "core",
-    "index_file_api",
-    "summarize_video_content",
-    "chunk_video_content",
-]
+dependencies = []
 
 [project.scripts]
 index_file_api = "index_file_api:app.main"
 summarize_video_content = "summarize_video_content:app.main"
 chunk_video_content = "chunk_video_content:app.main"
+
+[dependency-groups]
+test = [
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+]
+
+[tool.uv]
+package = false
+dev-dependencies = [
+    "core",
+    "index_file_api",
+    "summarize_video_content",
+    "chunk_video_content",
+]
 
 [tool.uv.sources]
 core = { workspace = true }
@@ -32,14 +44,6 @@ members = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[dependency-groups]
-dev = [
-    "pytest>=8.3.5",
-    "pytest-asyncio>=0.25.3",
-    "pytest-cov>=6.0.0",
-    "pytest-mock>=3.14.0",
-]
-
 [tool.hatch.build.targets.wheel]
 packages = [
     "core",
@@ -50,12 +54,22 @@ packages = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = []
+testpaths = [
+    "core/tests",
+    "index_file_api/tests",
+    "summarize_video_content/tests",
+    "chunk_video_content/tests",
+]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 pythonpath = [
-    "."
+    ".",
+    "core/src",
+    "index_file_api/src",
+    "summarize_video_content/src",
+    "chunk_video_content/src",
+    
 ]
 markers = [
     "asyncio: mark a test as an asyncio test",
