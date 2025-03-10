@@ -66,8 +66,12 @@ The summarize_video_content service is designed to generate a comprehensive yet 
 - `video_summary_queue`: Queues for finalizing and summarizing video content.
 - `cognitive_services_endpoint`: Endpoint for Azure Cognitive Services.
 - `azure_openai_endpoint`, `azure_openai_api_version`, `azure_openai_model_name`: Parameters for the Azure OpenAI service.
-- `content_understanding_endpoint`, `content_understanding_key`, `content_understanding_api_version`: For additional content validation.
-- `video_analyzer_name`, `storage_account_name`, `storage_container_name`: For accessing analyzed and stored video content.
+- `content_understanding_endpoint`: URI for content understanding.
+- `content_understanding_key`: Key assigned to the content understanding resource.
+- `content_understanding_api_version`: API version for the content understanding endpoint.
+- `video_analyzer_name`: The name of video analyzer used for videos
+- `storage_account_name`: Storage account name for storing gifs.
+- `storage_container_name`: Storage account container name to save gifs to.
 - `logging_level`: Adjustable logging parameters.
 
 **Execution:**
