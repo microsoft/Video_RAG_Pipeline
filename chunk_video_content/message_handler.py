@@ -1,6 +1,7 @@
 import logging
 import aiohttp
 import uuid
+import os  # Added import for file operations
 
 from azure.servicebus import ServiceBusMessage
 from core.models import BlobMetadata, VideoUploadMetadata
@@ -62,18 +63,32 @@ class MessageHandler():
             blob_metadata = BlobMetadata.model_validate_json(message_content)
             file_name = get_file_name_from_url(blob_metadata.fileUrl)  # Extract the file name from the URL
             is_uploaded: bool = False
-
+            
             # Check if the file is a GIF
             if is_file_type(file_name, ".gif"):
-                mp4_path = await self.gif_converter.download_and_convert_gif(blob_metadata.fileUrl, file_name)
-                file_name = file_name.replace(".gif", ".mp4")
-                is_uploaded = True  # Sets the bool to uploaded
+                try:
+                    gif_path = os.path.join(self.gif_converter.download_dir, file_name)
+                    mp4_path = await self.gif_converter.download_and_convert_gif(blob_metadata.fileUrl, file_name)
+                    file_name = file_name.replace(".gif", ".mp4")
+                    is_uploaded = True
 
-                # Upload the converted MP4 to Azure Blob Storage and update the file URL
-                blob_metadata.fileUrl = await self.blob_upload_service.upload_to_azure_blob(
-                    file_path=mp4_path,
-                    blob_name=file_name
-                )
+                    # Upload the converted MP4 to Azure Blob Storage and update the file URL
+                    blob_metadata.fileUrl = await self.blob_upload_service.upload_to_azure_blob(
+                        file_path=mp4_path,
+                        blob_name=file_name
+                    )
+                except Exception as e:
+                    self.logger.error(f"Error converting GIF to MP4: {e}", exc_info=True)
+                    raise
+                finally:
+                    # Delete the GIF and mp4 files after conversion and upload
+                    if os.path.exists(gif_path):
+                        os.remove(gif_path)
+                        self.logger.info(f"Deleted temporary GIF file: {gif_path}")
+                        
+                    if os.path.exists(mp4_path):
+                        os.remove(mp4_path)
+                        self.logger.info(f"Deleted temporary MP4 file: {mp4_path}")
 
             # Upload the content URL to the Content Understanding service and get the video ID
             self.logger.info(blob_metadata.fileUrl)
@@ -81,7 +96,7 @@ class MessageHandler():
             video_id = await self.content_understanding_client.upload_url(
                 content_url=blob_metadata.fileUrl
             )
-            logging.info(f'Video ID: {video_id}')
+            self.logger.info(f'Video ID: {video_id}')
 
             # Create metadata for the video upload and send it to the finalize content queue
             video_upload_metadata = VideoUploadMetadata(
@@ -101,8 +116,9 @@ class MessageHandler():
             )
 
             # Log that the message has been successfully sent
-            logging.info("Message sent")
+            self.logger.info("Message sent")
         except aiohttp.ClientError as aio_err:
-            logging.error(f"Async HTTP error: {aio_err}", exc_info=True)
+            self.logger.error(f"Async HTTP error: {aio_err}", exc_info=True)
         except Exception as e:
-            logging.error(f"Unexpected error processing message: {e}", exc_info=True)
+            self.logger.error(f"Unexpected error processing message: {e}", exc_info=True)
+            
