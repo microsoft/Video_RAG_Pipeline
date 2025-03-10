@@ -1,0 +1,54 @@
+{
+  "description": "Sample marketing video analyzer",
+  "scenario": "videoShot",
+  "config": {
+    "enableFace": false,
+    "returnDetails": true,
+    "disableContentFiltering": true
+  },
+  "fieldSchema": {
+    "fields": {
+      "description": {
+        "type": "string",
+        "description": "Provide an in-depth, comprehensive, and detailed transcription of the video split. Capture spoken dialogue, on-screen text, visual elements, key actions, gestures, and relevant non-verbal cues. Ensure clarity and coherence to present a complete depiction of the segment."
+      },
+      "subject": {
+        "type": "string",
+        "description": "Determine the core topic being discussed or presented in this video split. Extract the main theme, including product features, benefits, comparisons, or key concepts explained."
+      },
+      "sentiment": {
+        "type": "string",
+        "method": "classify",
+        "enum": [
+          "Positive",
+          "Neutral",
+          "Negative"
+        ]
+      },
+      "actions": {
+        "type": "string",
+        "description": "Identify and describe the key actions performed by individuals in the video. This includes gestures, interactions with software interfaces, demonstrations, user interactions, and any other movements relevant to the presentation."
+      },
+      "onScreenText": {
+        "type": "string",
+        "description": "Extract and transcribe all visible text that appears on the screen, including UI elements, callouts, captions, and annotations. Ensure accuracy and completeness in capturing textual content."
+      },
+      "keyTakeaways": {
+        "type": "string",
+        "description": "Summarize the most critical insights, key points, and main arguments conveyed in the split. This should highlight essential information, major selling points, and core messages delivered."
+      },
+      "spokenKeywords": {
+        "type": "string",
+        "description": "Extract a list of the most relevant and frequently mentioned keywords from the spoken dialogue. Focus on terms related to SaaS products, technical features, benefits, and common industry terminology."
+      },
+      "visualContext": {
+        "type": "string",
+        "description": "Describe the key visual elements present in the video split, such as UI screens, product interfaces, charts, graphs, and any other visual aids used to convey information. Ensure detailed analysis of how visuals support the spoken content."
+      },
+      "toneAnalysis": {
+        "type": "string",
+        "description": "Analyze and describe the tone of the speaker(s) in the video split. Capture whether the communication style is persuasive, informative, enthusiastic, formal, conversational, or any other relevant tone that impacts the delivery."
+      }
+    }
+  }
+}

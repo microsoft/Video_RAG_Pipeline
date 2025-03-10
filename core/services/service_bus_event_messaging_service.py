@@ -3,10 +3,13 @@ import asyncio
 import logging
 
 from typing import Callable
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer
+
+from core.exceptions import FatalQueueingException, RetryQueueingException
+
 
 class ServiceBusEventMessagingService:
     """
@@ -26,9 +29,9 @@ class ServiceBusEventMessagingService:
             service_bus_client: The Azure Service Bus client
             logger (logging.Logger): Logger instance for logging activities.
         """
-        self.service_bus_client = service_bus_client          
+        self.service_bus_client = service_bus_client
         self.logger = logging.getLogger(__name__)
- 
+
     async def send_message(
             self,
             queue_name: str,
@@ -191,7 +194,20 @@ class ServiceBusEventMessagingService:
                                     f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} completed."
                                 )
 
-                            except Exception as e:
+                            except RetryQueueingException as e:
+                                # Log that the video processing is still ongoing and needs to be requeued
+                                self.logger.warning(f"Requeueing message :: Exception: {e}")
+                                # Schedule the message to be retried after a 30-second delay
+                                scheduled_time = datetime.now(timezone.utc) + timedelta(seconds=30)
+                                await self.schedule_message(
+                                    queue_name=queue_name,
+                                    body=e.event_message,
+                                    schedule_time_utc=scheduled_time,
+                                    correlation_id=correlation_id
+                                )
+                                # Log that the message has been requeued
+                                self.logger.info("Message requeued successfully.")
+                            except FatalQueueingException or Exception as e:
                                 correlation_id = msg.application_properties.get(b"correlationId")
                                 trace_id = msg.application_properties.get(b"traceId")
                                 self.logger.exception(
@@ -201,6 +217,7 @@ class ServiceBusEventMessagingService:
                                 self.logger.info(
                                     f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} abandoned."
                                 )
+
                 finally:
                     # Ensure that the renewer is properly closed to release resources
                     await renewer.close()
