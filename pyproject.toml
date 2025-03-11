@@ -12,6 +12,7 @@ chunk_video_content = "chunk_video_content:app.main"
 [dependency-groups]
 test = [
     "pytest>=8.3.5",
+    "pytest-timeout",
     "pytest-asyncio>=0.25.3",
     "pytest-cov>=6.0.0",
     "pytest-mock>=3.14.0",

@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer
 
-from exceptions import FatalQueueingException, RetryQueueingException
+from ..exceptions import FatalQueueingException, RetryQueueingException
 
 
 class ServiceBusEventMessagingService:
