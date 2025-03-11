@@ -10,10 +10,14 @@ dependencies = [
     "pydantic-settings",
     "python-dotenv",
     "openai",
+    "core",
 ]
 
 [tool.uv]
 package = true
+
+[tool.uv.sources]
+core = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

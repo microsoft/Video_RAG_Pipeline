@@ -4,11 +4,6 @@ version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = []
 
-[project.scripts]
-index_file_api = "index_file_api:app.main"
-summarize_video_content = "summarize_video_content:app.main"
-chunk_video_content = "chunk_video_content:app.main"
-
 [dependency-groups]
 test = [
     "pytest>=8.3.5",
