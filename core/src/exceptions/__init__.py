@@ -1,5 +1,5 @@
-from core.exceptions.fatal_queueing_exception import FatalQueueingException
-from core.exceptions.retry_queueing_exception import RetryQueueingException
+from .fatal_queueing_exception import FatalQueueingException
+from .retry_queueing_exception import RetryQueueingException
 
 
 __all__ = [
