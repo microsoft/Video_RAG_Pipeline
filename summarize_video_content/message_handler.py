@@ -82,7 +82,7 @@ class MessageHandler:
         if content_result.status == "Succeeded":
 
             # Check if there are any warnings in the content understanding result
-            if content_result.result.warnings and len(content_result.result.warnings) > 0:
+            if content_result.result.warnings and len(content_result.result.warnings) > 0 and len(content_result.result.contents) == 0 and len(content_result.result.contents[0].fields) == 0:
                 # Raise a fatal exception if there are warnings in the content understanding result
                 logger.warning(f"Content Understanding has fatal warnings: {content_result.result.warnings}")
                 raise FatalQueueingException("Content Understanding has fatal warnings")

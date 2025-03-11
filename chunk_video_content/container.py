@@ -78,7 +78,7 @@ class Container(containers.DeclarativeContainer):
         MessageHandler,
         event_messaging_service=event_messaging_service,
         gif_converter=gif_converter,
-        content_understanding_client=content_understanding_client,
+        video_analysis_service=video_analysis_service,
         blob_upload_service=file_upload_service,
         finalize_content_queue_name=config.finalize_content_queue,
     )

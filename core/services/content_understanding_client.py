@@ -76,7 +76,7 @@ class ContentUnderstandingClient(VideoAnalysisService):
             self.logger.exception(f"An unexpected error occurred while getting content status: {err}")
             raise
 
-    async def upload_url(self, content_url: str) -> str:
+    async def analyze_video_at_url(self, content_url: str) -> str:
         """
         Uploads a content URL for analysis.
 
