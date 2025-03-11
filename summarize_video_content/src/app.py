@@ -28,9 +28,9 @@ stop_event = asyncio.Event()
 
 @inject
 async def main_logic(
-        service_bus_messaging_service: ServiceBusEventMessagingService = Provide[Container.service_bus_messaging_service],
-        message_handler: MessageHandler = Provide[Container.message_handler],
-        finalize_content_queue: str = Provide[Container.config.finalize_content_queue]
+    service_bus_messaging_service: ServiceBusEventMessagingService = Provide[Container.service_bus_messaging_service],
+    message_handler: MessageHandler = Provide[Container.message_handler],
+    finalize_content_queue: str = Provide[Container.config.finalize_content_queue]
 ):
     """
     The main asynchronous function that initializes services and starts listening for messages.
