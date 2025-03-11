@@ -6,7 +6,7 @@ from openai import AzureOpenAI
 from core import (
     create_service_bus_client,
     create_azure_credential,
-    create_token_provider, 
+    create_azure_ad_token, 
     ServiceBusEventMessagingService,
     ContentUnderstandingClient,
     AzureBlobFileUploadService, 
@@ -54,8 +54,8 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
-    token_provider_resource = providers.Resource(
-        create_token_provider
+    azure_ad_token_resource = providers.Resource(
+        create_azure_ad_token
     )
 
     openai_service_key_auth = providers.Singleton(
@@ -67,7 +67,7 @@ class Container(containers.DeclarativeContainer):
 
     openai_service_managed_identity_auth = providers.Singleton(
         AzureOpenAI,
-        azure_ad_token_provider=token_provider_resource,
+        azure_ad_token=azure_ad_token_resource,
         api_version=config.azure_openai_api_version,
         azure_endpoint=config.azure_openai_endpoint
     )

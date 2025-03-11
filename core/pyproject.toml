@@ -10,7 +10,8 @@ dependencies = [
     "asyncio",
     "azure.servicebus",
     "pydantic",
-    "dependency-injector"
+    "dependency-injector",
+    "moviepy>=2.1.2",
 ]
 
 [tool.setuptools]

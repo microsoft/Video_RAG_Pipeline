@@ -36,11 +36,12 @@ async def create_service_bus_client(endpoint: str, credential: any, logger: any)
     finally:
         client = None  # Ensure the client is reset
 
-# we need to extract a token provider for the AzureOpenAI client if we're going to connect via Managed Identity
-async def create_token_provider():
+# we need to extract a token for the AzureOpenAI client if we're going to connect via Managed Identity
+async def create_azure_ad_token():
     credential = DefaultAzureCredential()
     token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
-    yield token_provider
+    token = await token_provider()
+    yield token
     await credential.close()
 
 async def create_content_understanding_http_client_session(key: str, logger: Optional[any]):
@@ -70,7 +71,7 @@ __all__ = [
     "AnimatedGifConverter",
     "AzureBlobFileUploadService",
     "create_azure_credential",
-    "create_token_provider",
+    "create_azure_ad_token",
     "create_service_bus_client",
     "create_content_understanding_http_client_session"
 ]

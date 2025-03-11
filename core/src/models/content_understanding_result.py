@@ -3,22 +3,23 @@ from pydantic import BaseModel
 from datetime import datetime
 from uuid import UUID
 
-class ActionsField(BaseModel):
+
+class GenericStringField(BaseModel):
     type: str
     valueString: str
 
-class SummaryField(BaseModel):
-    type: str
-    valueString: str
-
-class SentimentField(BaseModel):
-    type: str
-    valueString: str
 
 class Fields(BaseModel):
-    actions: ActionsField
-    summary: SummaryField
-    sentiment: SentimentField
+    description: GenericStringField
+    subject: GenericStringField
+    sentiment: GenericStringField
+    actions: GenericStringField
+    onScreenText: GenericStringField
+    keyTakeaways: GenericStringField
+    spokenKeywords: GenericStringField
+    visualContext: GenericStringField
+    toneAnalysis: GenericStringField
+
 
 class Content(BaseModel):
     markdown: str
@@ -29,9 +30,11 @@ class Content(BaseModel):
     width: int
     height: int
 
+
 class Warning(BaseModel):
     code: str
     message: str
+
 
 class Result(BaseModel):
     analyzerId: str
@@ -39,6 +42,7 @@ class Result(BaseModel):
     createdAt: datetime
     warnings: List[Warning]
     contents: List[Content]
+
 
 class ContentResult(BaseModel):
     id: UUID
