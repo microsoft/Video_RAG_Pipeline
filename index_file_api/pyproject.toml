@@ -23,12 +23,18 @@ test = [
     "pytest-mock>=3.14.0",
 ]
 
+[tool.uv]
+package = true
+
 [tool.uv.sources]
 core = { workspace = true }
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.build.targets.wheel]
-packages = ["index_file_api"]
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
