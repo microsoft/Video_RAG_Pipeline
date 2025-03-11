@@ -2,7 +2,7 @@
 
 ## Project Summary
 The Video RAG Pipeline is a reactive video processing system built from three interdependent services:
-1. **index_file_api**: Receives file payloads, validates inputs, and enqueues blob metadata via Azure Service Bus.
+1. **index_file_api**: Receives file payloads, validates inputs, and enqueues file metadata via Azure Service Bus.
 2. **chunk_video_content**: Downloads and processes video files. If the file is a GIF then the process downloads the file, uploads it to Azure Blob Storage, and forwards content URLs for analysis. For MP4 files, the files are sent directly for analysis. We utilize either the url extension or the content-type for the file format.
 3. **summarize_video_content**: Retrieves processed content, invokes the Azure OpenAI service in a two-stage approach (first summarization then consolidation), and produces a final summary.
 
@@ -43,7 +43,9 @@ The chunk_video_content service efficiently handles video ingestion and processi
 - `finalize_content_queue`: Queue utilized for final content processing.
 - `content_understanding_endpoint`, `content_understanding_key`, `content_understanding_api_version`: Parameters for the content understanding service.
 - `video_analyzer_name`: Video analyzer service identifier.
-- `storage_account_name`, `storage_container_name`, `storage_account_api_key`: Azure Blob Storage configurations.
+- `storage_account_name`: Storage account name for storing gifs.
+- `storage_container_name`: Storage account container name to save gifs to.
+- `storage_account_api_key`: Storage account key (optional if you are using a managed identity).
 - `mp4_output_path`: Filesystem path for temporary MP4 files.
 - `logging_level`: Diagnostic logging level.
 
@@ -64,8 +66,12 @@ The summarize_video_content service is designed to generate a comprehensive yet 
 - `video_summary_queue`: Queues for finalizing and summarizing video content.
 - `cognitive_services_endpoint`: Endpoint for Azure Cognitive Services.
 - `azure_openai_endpoint`, `azure_openai_api_version`, `azure_openai_model_name`: Parameters for the Azure OpenAI service.
-- `content_understanding_endpoint`, `content_understanding_key`, `content_understanding_api_version`: For additional content validation.
-- `video_analyzer_name`, `storage_account_name`, `storage_container_name`: For accessing analyzed and stored video content.
+- `content_understanding_endpoint`: URI for content understanding.
+- `content_understanding_key`: Key assigned to the content understanding resource.
+- `content_understanding_api_version`: API version for the content understanding endpoint.
+- `video_analyzer_name`: The name of video analyzer used for videos
+- `storage_account_name`: Storage account name for storing gifs.
+- `storage_container_name`: Storage account container name to save gifs to.
 - `logging_level`: Adjustable logging parameters.
 
 **Execution:**
@@ -81,6 +87,7 @@ The summarize_video_content service is designed to generate a comprehensive yet 
 - **Azure Cognitive Services:** For content analysis and understanding.
 - **Azure OpenAI Service:** To generate and consolidate video summaries.
 - **Azure Container Apps or AKS:** Hosts individual microservices in containerized environments.
+- **Content Understanding:** Used to analyze video content including transcripts.
 
 ## Additional Information
 - Update the `.env` file with appropriate values for each setting.
