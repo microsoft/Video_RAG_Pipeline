@@ -7,14 +7,15 @@ requires-python = ">=3.10"
 dependencies = [
     "aiohttp",
     "aiofiles",
-    "azure-servicebus",
     "azure-storage-blob",
     "azure-identity",
     "python-dotenv",
     "pydantic-settings",
-    "moviepy",
     "core",
 ]
+
+[tool.uv]
+package = true
 
 [tool.uv.sources]
 core = { workspace = true }

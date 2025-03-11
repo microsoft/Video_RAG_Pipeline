@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "aiohttp",
-    "azure-servicebus",
     "azure-identity",
     "pydantic-settings",
     "python-dotenv",
