@@ -41,3 +41,20 @@ For example:
 * chunk_video_content: ```docker build -t chunk_video_content . --buil-arg PROJECTPATH=chunk_video_content```
 * index_file_api: ```docker build -t index_file_api . --buil-arg PROJECTPATH=index_file_api```
 * summarize_video_content: ```docker build -t summarize_video_content . --buil-arg PROJECTPATH=summarize_video_content```
+
+### Running Tests
+
+The test projects require pytest for execution.
+
+#### venv config
+
+To install the test dependencies in your environment, run the following command:
+``` uv sync --group test``` 
+
+#### execution
+
+To run the tests, either run ```pytest``` or ``` uv run pytest``` in your _project_ directory. The directory could either be the repo root, or one of the supported project paths:
+- ```summarize_video_content```
+- ```index_file_api```
+- ```chunk_video_content```
+- ```core```
