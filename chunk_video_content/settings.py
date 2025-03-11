@@ -14,7 +14,8 @@ class AppSettings(BaseSettings):
         content_understanding_endpoint (str): URL endpoint for the content understanding service.
         content_understanding_key (str): API key for authenticating with the content understanding service.  
         content_understanding_api_version (str): API version to use for the content understanding service.  
-        video_analyzer_name (str): Name identifier for the video analyzer service.  
+        video_analyzer_name (str): Name identifier for the video analyzer service.
+        analysis_service_type (str): Specifies the type of service to use for video analysis (choices are content_understanding, multimodal_llm (not yet implemented))
         storage_account_name (str): Azure Storage account name.  
         storage_container_name (str): Name of the blob container in Azure Storage.
         mp4_output_path (str): Filesystem path where MP4 output files will be stored.  
@@ -57,6 +58,9 @@ class AppSettings(BaseSettings):
 
     # Identifier name for the video analyzer component or service  
     video_analyzer_name: str
+
+    # Specifies the type of service to use for video analysis (choices are content_understanding, multimodal_llm (not yet implemented))
+    analysis_service_type: str = "content_understanding"
 
     # Name of the Azure Storage account where blobs are stored
     storage_account_name: str

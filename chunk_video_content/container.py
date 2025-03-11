@@ -4,7 +4,7 @@ from dependency_injector import containers, providers
 
 from core import create_azure_credential, create_service_bus_client, create_content_understanding_http_client_session
 from core.services import ServiceBusEventMessagingService, ContentUnderstandingClient, AnimatedGifConverter, \
-    AzureBlobFileUploadService
+    AzureBlobFileUploadService, VideoAnalysisService, MultiModalLLMAnalysisService
 
 from chunk_video_content.message_handler import MessageHandler
 
@@ -35,6 +35,16 @@ class Container(containers.DeclarativeContainer):
         endpoint=config.content_understanding_endpoint,
         analyzer_name=config.video_analyzer_name,
         api_version=config.content_understanding_api_version,
+    )
+
+    multi_modal_llm_analysis_service = providers.Singleton(
+        MultiModalLLMAnalysisService
+    )
+
+    video_analysis_service = providers.Selector(
+        config.analysis_service_type,
+        content_understanding=content_understanding_client,
+        multimodal_llm=multi_modal_llm_analysis_service
     )
 
     gif_converter = providers.Singleton(

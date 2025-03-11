@@ -3,10 +3,10 @@ import logging
 from typing import Optional
 
 from core.models import ContentResult
+from .video_analysis_service import VideoAnalysisService
 
 
-
-class ContentUnderstandingClient:
+class ContentUnderstandingClient(VideoAnalysisService):
     """
     An asynchronous client for interacting with the Content Understanding API using aiohttp.
 
@@ -41,23 +41,12 @@ class ContentUnderstandingClient:
         # Initialize the logger
         self.logger = logging.getLogger(__name__)
 
-    # TODO: Remove this
-    # This was needed because of the summarize_video_content service
-    # Such service should implement the container.py approach as in chunk_video_content service
-    async def __aenter__(self):
-        return self
-
-    # TODO: Same as above, remove this
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.session.close()
-
     async def get_content_status(self, content_id: str) -> ContentResult:
         """
         Retrieves the status of the analyzed content.
 
         Args:
             content_id (str): The ID of the content to check.
-            analyzer_name (str): The name of the analyzer used.
 
         Returns:
             ContentResult: The result of the content analysis.

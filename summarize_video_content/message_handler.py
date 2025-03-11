@@ -4,9 +4,9 @@ import uuid
 from azure.servicebus import ServiceBusMessage
 from openai import AzureOpenAI
 
-from core import ContentResult, SummarizedVideoMetadata, ServiceBusEventMessagingService
+from core import ContentResult, SummarizedVideoMetadata, EventMessagingService
 from core.models import VideoUploadMetadata
-from core.services import ContentUnderstandingClient, AzureBlobFileUploadService
+from core.services import VideoAnalysisService, AzureBlobFileUploadService
 from core.exceptions import FatalQueueingException, RetryQueueingException
 
 from core.utils import get_file_name_from_url
@@ -18,9 +18,9 @@ class MessageHandler:
 
     def __init__(
             self,
-            service_bus_messaging_service: ServiceBusEventMessagingService,
+            event_messaging_service: EventMessagingService,
             file_upload_service: AzureBlobFileUploadService,
-            content_understanding_client: ContentUnderstandingClient,
+            video_analysis_service: VideoAnalysisService,
             openai_service: AzureOpenAI,
             openai_model_name: str,
             finalize_content_queue_name: str,
@@ -29,9 +29,9 @@ class MessageHandler:
         """
         Creates an asynchronous message handler function for processing incoming Service Bus messages.
 
-        :param service_bus_messaging_service: The Service Bus messaging service to send and receive messages.
+        :param event_messaging_service: The messaging service to send and receive messages.
         :param file_upload_service: The file upload service to manage uploaded content.
-        :param content_understanding_client: The client for the content understanding service.
+        :param video_analysis_service: The service for analyzing video content.
         :param openai_service: The Azure OpenAI service for generating video summaries.
         :param openai_model_name: The name of the OpenAI model to use for generating summaries.
         :param finalize_content_queue_name: The name of the queue for finalizing content processing.
@@ -39,10 +39,10 @@ class MessageHandler:
 
         :return: A new instance of the MessageHandler class.
         """
-        self.service_bus_messaging_service = service_bus_messaging_service
+        self.event_messaging_service = event_messaging_service
         self.file_upload_service = file_upload_service
 
-        self.content_understanding_client = content_understanding_client
+        self.video_analysis_service = video_analysis_service
 
         self.openai_service = openai_service
         self.openai_model_name = openai_model_name
@@ -106,7 +106,7 @@ class MessageHandler:
             json_string = summarized_video_metadata.model_dump_json()
 
             # Send the summarized metadata to the designated queue
-            await self.service_bus_messaging_service.send_message(
+            await self.event_messaging_service.send_message(
                 queue_name=self.video_summary_queue_name,
                 body=json_string,
                 correlation_id=correlation_id,
@@ -238,7 +238,7 @@ class MessageHandler:
         """
         try:
             # Fetch the status of the content analysis
-            content_result = await self.content_understanding_client.get_content_status(
+            content_result = await self.video_analysis_service.get_content_status(
                 content_id=video_upload_metadata.videoId
             )
 
@@ -246,6 +246,6 @@ class MessageHandler:
         except Exception as e:
             # Raise
             raise RetryQueueingException(
-                "Error getting video description from Content Understanding",
+                "Error getting video description from Video Analysis Service",
                 video_upload_metadata.model_dump_json()
             )
