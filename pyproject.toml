@@ -14,7 +14,7 @@ test = [
 ]
 
 [tool.uv]
-package = false
+package = true
 dev-dependencies = [
     "core",
     "index_file_api",

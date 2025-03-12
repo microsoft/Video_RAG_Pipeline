@@ -6,7 +6,7 @@
             "name": "index_file_api",
             "type": "debugpy",
             "request": "launch",
-            "module": "index_file_api.app",
+            "module": "index_file_api.src.app",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": false
@@ -15,7 +15,7 @@
             "name": "chunk_video_content",
             "type": "debugpy",
             "request": "launch",
-            "module": "chunk_video_content.app",
+            "module": "chunk_video_content.src.app",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": false
@@ -24,7 +24,7 @@
             "name": "summarize_video_content",
             "type": "debugpy",
             "request": "launch",
-            "module": "summarize_video_content.app",
+            "module": "summarize_video_content.src.app",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "justMyCode": false
