@@ -4,7 +4,7 @@ import logging
 from azure.servicebus import ServiceBusMessage
 
 from core.utils import get_file_name_from_url
-from core.models import ContentResult, VideoUploadMetadata, SummarizedVideoMetadata
+from core.models import ContentResult, VideoUploadMetadata, ProcessingResultEvent
 from core.services import ContentUnderstandingClient, AzureBlobFileUploadService, LLMVideoAnalysisService, \
     ServiceBusEventMessagingService
 from core.exceptions import FatalQueueingException, RetryQueueingException
@@ -58,12 +58,14 @@ class MessageHandler:
         """
 
         # Log that a message has been received
-        logger.info("Received message")
+        logger.debug("Received message")
 
         # Access the message body appropriately
         message_content: str = str(message)
         correlation_id: uuid.UUID = message.application_properties.get("correlationId", None)
         trace_id: uuid.UUID = message.application_properties.get("traceId", None)
+
+        logger.debug(f"Analysing received message :: correlation_id={correlation_id}")
 
         # Deserialize the message content into a VideoUploadMetadata object
         video_upload_metadata = VideoUploadMetadata.model_validate_json(message_content)
@@ -78,19 +80,19 @@ class MessageHandler:
             # Check if there are any warnings in the content understanding result
             if content_result.result.warnings and len(content_result.result.warnings) > 0:
                 # Log the warnings from the content understanding result
-                logger.warning(f"Content Understanding has fatal warnings: {content_result.result.warnings}")
+                logger.warning(f"Content Understanding has fatal warnings: {content_result.result.warnings} :: correlation_id={correlation_id}")
                 # Raise a fatal exception if there are warnings in the content understanding result
                 if len(content_result.result.contents) == 0 or not content_result.result.contents[0].fields:
-                    raise FatalQueueingException("Content Understanding has fatal warnings")
+                    raise FatalQueueingException(f"Content Understanding has fatal warnings :: correlation_id={correlation_id}")
 
             # Check if there are any contents in the content understanding result
             if not content_result.result.contents or len(content_result.result.contents) == 0:
                 # Raise a fatal exception if there are no contents in the content understanding result
-                logger.warning(f"Content Understanding output has no content: {content_result.result.contents}")
-                raise FatalQueueingException("Content Understanding has no content")
+                logger.warning(f"Content Understanding output has no content: {content_result.result.contents} :: correlation_id={correlation_id}")
+                raise FatalQueueingException(f"Content Understanding has no content :: correlation_id={correlation_id}")
 
             # Log that the video processing has completed successfully
-            logger.info("Video processing succeeded, on Content Understanding. Creating video description...")
+            logger.info(f"Video processing succeeded on Content Understanding :: starting video analysis and description process :: correlation_id={correlation_id}")
 
             # Extract the main subjects or topics discussed throughout the video
             video_subjects = await self.llm_video_analysis_service.find_video_subjects(
@@ -118,39 +120,35 @@ class MessageHandler:
                     video_upload_metadata=video_upload_metadata
                 )
 
-                # Create a summarized metadata object with the generated summary
-                summarized_video_metadata = SummarizedVideoMetadata(
-                    videoId=video_upload_metadata.videoId,
+                # Create a ProcessingResultEvent object to send to the final video summary queue
+                processing_result = ProcessingResultEvent(
                     title=subject_content_set.title,
                     description=subject_content,
                     startTimeMs=subject_content_set.startTimeMs,
                     endTimeMs=subject_content_set.endTimeMs
                 )
 
-                # Serialize the summarized metadata to JSON
-                json_string = summarized_video_metadata.model_dump_json()
-
                 # Send the summarized metadata to the designated queue
                 await self.service_bus_messaging_service.send_message(
                     queue_name=self.video_summary_queue_name,
-                    body=json_string,
+                    body=processing_result.model_dump_json(),
                     correlation_id=correlation_id,
                     trace_id=trace_id
                 )
 
                 # Log that the summarized message has been sent successfully
-                logger.info("Video segment event produced successfully")
+                logger.info(f"Processing result event produced successfully :: correlation_id={correlation_id}")
 
             if video_upload_metadata.isUploaded:
                 file_name: str = get_file_name_from_url(video_upload_metadata.fileUrl)
                 await self.file_upload_service.delete_blob(file_name)
 
             # Log that the summarized message has been sent successfully
-            logger.info("Video description event produced successfully")
+            logger.info(f"Full video processing result events produced successfully :: correlation_id={correlation_id}")
         else:
             # Raise a retrial exception if the video is still processing
             raise RetryQueueingException(
-                "Video still processing on Content Understanding",
+                f"Video still processing on Content Understanding :: correlation_id={correlation_id}",
                 video_upload_metadata.model_dump_json()
             )
 

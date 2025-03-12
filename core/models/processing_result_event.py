@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
-class SummarizedVideoMetadata(BaseModel):
-    videoId: str
+class ProcessingResultEvent(BaseModel):
     title: str
     description: str
     startTimeMs: int
