@@ -106,14 +106,14 @@ class MessageHandler:
 
             # Splits the content_result.result.contents into several lists of contents
             # by the start and end time of each video_subjects
-            subjects_content = video_subjects.to_video_subjects(content_result.result.contents)
+            subjects_content_sets = video_subjects.to_subject_content_sets(content_result.result.contents)
 
             # Generate the summary for each content list
-            for subject_content in subjects_content:
+            for subject_content_set in subjects_content_sets:
                 # Generate the summary for the video segment
                 # Raise a retrial exception if the video summary generation fails
                 content_summary = await self.llm_video_analysis_service.create_video_summary(
-                    contents=subject_content["contents"], subject=subject_content["subject"],
+                    contents=subject_content_set["contents"], subject=subject_content_set["subject"],
                     video_upload_metadata=video_upload_metadata
                 )
 

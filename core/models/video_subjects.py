@@ -14,7 +14,7 @@ class Subject(BaseModel):
 class VideoSubjects(BaseModel):
     subjects: list[Subject]
 
-    def to_video_subjects(self, contents: list[Content]) -> list[dict[str, Any]]:
+    def to_subject_content_sets(self, contents: list[Content]) -> list[dict[str, Any]]:
         return [
             {
                 "subject": subject.title,
