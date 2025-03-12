@@ -112,15 +112,19 @@ class MessageHandler:
             for subject_content_set in subjects_content_sets:
                 # Generate the summary for the video segment
                 # Raise a retrial exception if the video summary generation fails
-                content_summary = await self.llm_video_analysis_service.create_video_summary(
-                    contents=subject_content_set["contents"], subject=subject_content_set["subject"],
+                subject_content = await self.llm_video_analysis_service.create_video_summary(
+                    subject=subject_content_set.title,
+                    contents=subject_content_set.content,
                     video_upload_metadata=video_upload_metadata
                 )
 
                 # Create a summarized metadata object with the generated summary
                 summarized_video_metadata = SummarizedVideoMetadata(
-                    summary=content_summary,
-                    videoId=video_upload_metadata.videoId
+                    videoId=video_upload_metadata.videoId,
+                    title=subject_content_set.title,
+                    description=subject_content,
+                    startTimeMs=subject_content_set.startTimeMs,
+                    endTimeMs=subject_content_set.endTimeMs
                 )
 
                 # Serialize the summarized metadata to JSON
