@@ -11,5 +11,6 @@ __all__ = [
     "SummarizedVideoMetadata",
     "VideoFileMetadata",
     "VideoUploadMetadata",
-    "VideoSubjects"
+    "VideoSubjects",
+    "Content"
 ]

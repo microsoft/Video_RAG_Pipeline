@@ -5,7 +5,7 @@ from openai import AzureOpenAI
 
 from core import create_service_bus_client, create_azure_credential, create_token_provider
 from core.services import ServiceBusEventMessagingService, ContentUnderstandingClient, AzureBlobFileUploadService, \
-    create_content_understanding_http_client_session
+    create_content_understanding_http_client_session, LLMVideoAnalysisService
 
 from summarize_video_content.message_handler import MessageHandler
 
@@ -77,13 +77,18 @@ class Container(containers.DeclarativeContainer):
         service_bus_client=service_bus_client,
     )
 
+    llm_video_analysis_service = providers.Singleton(
+        LLMVideoAnalysisService,
+        openai_service=openai_service,
+        openai_model_name=config.azure_openai_model_name
+    )
+
     message_handler = providers.Singleton(
         MessageHandler,
         service_bus_messaging_service=service_bus_messaging_service,
         file_upload_service=file_upload_service,
         content_understanding_client=content_understanding_client,
-        openai_service=openai_service,
-        openai_model_name=config.azure_openai_model_name,
+        llm_video_analysis_service=llm_video_analysis_service,
         finalize_content_queue_name=config.finalize_content_queue,
         video_summary_queue_name=config.video_summary_queue
     )

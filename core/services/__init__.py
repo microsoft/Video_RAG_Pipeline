@@ -6,6 +6,7 @@ from .event_messaging_service import *
 from .service_bus_event_messaging_service import *
 from .animated_gif_converter import *
 from .file_upload_service import *
+from .llm_video_analysis_service import *
 
 async def create_azure_credential(api_key_name: Optional[str] = None, api_key: Optional[str] = None):
     if api_key_name and api_key:
@@ -69,6 +70,7 @@ __all__ = [
     "ContentResult",
     "AnimatedGifConverter",
     "AzureBlobFileUploadService",
+    "LLMVideoAnalysisService",
     "create_azure_credential",
     "create_token_provider",
     "create_service_bus_client",
