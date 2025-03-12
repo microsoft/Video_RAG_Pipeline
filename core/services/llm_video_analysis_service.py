@@ -1,8 +1,6 @@
 import logging
-import json
 
-from openai import AzureOpenAI
-from pydantic import ValidationError
+from openai import OpenAI
 
 from core.exceptions import RetryQueueingException
 from core.models import VideoUploadMetadata, ContentResult, Content, VideoSubjects
@@ -12,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class LLMVideoAnalysisService:
 
-    def __init__(self, openai_service: AzureOpenAI, openai_model_name: str) -> None:
+    def __init__(self, openai_service: OpenAI, openai_model_name: str) -> None:
         self.openai_service = openai_service
         self.openai_model_name = openai_model_name
 
@@ -101,25 +99,6 @@ class LLMVideoAnalysisService:
                             - **When writing subject titles, prioritize using the exact words, product names, feature labels, or phrases that are spoken by presenters or shown on-screen during the video.**
                             - Do not paraphrase or use generic subject titles when more specific terminology is clearly used in the content.
 
-                            ### Expected Output:
-                            Return a JSON object with this format:
-                            ```json
-                            {{
-                              "subjects": [
-                                {{
-                                  "title": "Exact feature or concept name from the content",
-                                  "startTimeMs": 0,
-                                  "endTimeMs": 78000
-                                }},
-                                {{
-                                  "title": "Another clearly labeled topic from the content",
-                                  "startTimeMs": 78000,
-                                  "endTimeMs": 145000
-                                }}
-                              ]
-                            }}
-                            ```
-
                             Now analyze the segments below and group them into broader subjects accordingly:
 
                             {combined_summary}
@@ -129,8 +108,8 @@ class LLMVideoAnalysisService:
             )
 
             # Extract and return the generated summary from the response
-            return self.safely_parse_video_subjects(response.choices[0].message.content)
-        except Exception as e:
+            return response.choices[0].message.parsed
+        except Exception:
             # Raise a retrial exception if the summary generation fails
             logger.warning("Error creating video description")
             raise RetryQueueingException(
@@ -229,65 +208,19 @@ class LLMVideoAnalysisService:
 
                             ### Initial Subjects List:
                             {initial_subjects.model_dump_json(indent=2)}
-
-                            ### Expected Output Format:
-                            {{
-                              "subjects": [
-                                {{
-                                  "title": "Refined subject title",
-                                  "startTimeMs": 0,
-                                  "endTimeMs": 74000
-                                }},
-                                ...
-                              ]
-                            }}
                         """
                     }
                 ]
             )
 
-            return self.safely_parse_video_subjects(response.choices[0].message.content)
+            return response.choices[0].message.parsed
 
-        except Exception as e:
+        except Exception:
             logger.warning("Error during subject list assessment and improvement")
             raise RetryQueueingException(
                 "Error assessing/improving subject list",
                 video_upload_metadata.model_dump_json()
             )
-
-    def safely_parse_video_subjects(self, response_content: str) -> VideoSubjects:
-        """
-        Parses and validates the JSON response content returned by the OpenAI API to extract the list of video subjects.
-
-        This utility function ensures the response is correctly formatted and maps it to the `VideoSubjects` Pydantic model.
-        It handles common response formatting issues such as Markdown code block wrappers or extra text around the JSON.
-
-        Args:
-            response_content (str): The raw content string returned by OpenAI's chat completion API,
-                                    expected to be a JSON object or wrapped in a Markdown-style code block.
-
-        Returns:
-            VideoSubjects: A validated object containing a list of subjects, each with title, start time, and end time in milliseconds.
-
-        Raises:
-            json.JSONDecodeError: If the content is not valid JSON or fails to parse.
-            ValidationError: If the content fails to conform to the `VideoSubjects` schema.
-        """
-        try:
-            # If wrapped in a Markdown code block, remove it
-            if response_content.strip().startswith("```json"):
-                logger.warning("We should not be removing Markdown code block wrapper from the LLM response content!!")
-                response_content = response_content.strip().removeprefix("```json").removesuffix("```").strip()
-
-            # Parse to dict
-            data = json.loads(response_content)
-
-            # Validate via Pydantic
-            return VideoSubjects.model_validate(data)  # Use `.parse_obj(data)` if you're on Pydantic v1
-
-        except (json.JSONDecodeError, ValidationError) as e:
-            logger.error(f"Failed to parse LLM response content: {e}")
-            raise e
 
     async def create_video_summary(
             self,

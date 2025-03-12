@@ -75,13 +75,13 @@ class MessageHandler:
         )
 
         if content_result.status == "Succeeded":
-
             # Check if there are any warnings in the content understanding result
-            if content_result.result.warnings and len(content_result.result.warnings) > 0 and (
-                    len(content_result.result.contents) == 0 or not content_result.result.contents[0].fields):
-                # Raise a fatal exception if there are warnings in the content understanding result
+            if content_result.result.warnings and len(content_result.result.warnings) > 0:
+                # Log the warnings from the content understanding result
                 logger.warning(f"Content Understanding has fatal warnings: {content_result.result.warnings}")
-                raise FatalQueueingException("Content Understanding has fatal warnings")
+                # Raise a fatal exception if there are warnings in the content understanding result
+                if len(content_result.result.contents) == 0 or not content_result.result.contents[0].fields:
+                    raise FatalQueueingException("Content Understanding has fatal warnings")
 
             # Check if there are any contents in the content understanding result
             if not content_result.result.contents or len(content_result.result.contents) == 0:
@@ -106,15 +106,7 @@ class MessageHandler:
 
             # Splits the content_result.result.contents into several lists of contents
             # by the start and end time of each video_subjects
-            subjects_content = [
-                {
-                    "subject": subject.title,
-                    "contents": [content for content in content_result.result.contents
-                                 if
-                                 content.startTimeMs >= subject.startTimeMs and content.endTimeMs <= subject.endTimeMs]
-                }
-                for subject in video_subjects.subjects
-            ]
+            subjects_content = video_subjects.to_video_subjects(content_result.result.contents)
 
             # Generate the summary for each content list
             for subject_content in subjects_content:
