@@ -197,6 +197,10 @@ class ServiceBusEventMessagingService:
                             except RetryQueueingException as e:
                                 # Log that the video processing is still ongoing and needs to be requeued
                                 self.logger.warning(f"Requeueing message :: Exception: {e}")
+
+                                # Complete the message to remove it from the queue before rescheduling
+                                await receiver.complete_message(message=msg)
+                                
                                 # Schedule the message to be retried after a 30-second delay
                                 scheduled_time = datetime.now(timezone.utc) + timedelta(seconds=30)
                                 await self.schedule_message(
