@@ -2,15 +2,11 @@ import uuid
 import logging
 
 from azure.servicebus import ServiceBusMessage
-from openai import AzureOpenAI
 
 from core import (
     ContentResult,
-    SummarizedVideoMetadata,
-    ServiceBusEventMessagingService,
     VideoUploadMetadata,
     ProcessingResultEvent,
-    ContentUnderstandingClient,
     AzureBlobFileUploadService,
     LLMVideoAnalysisService,
     EventMessagingService,
@@ -25,13 +21,13 @@ logger = logging.getLogger(__name__)
 class MessageHandler:
 
     def __init__(
-            self,
-            event_messaging_service: EventMessagingService,
-            file_upload_service: AzureBlobFileUploadService,
-            video_extraction_service: VideoExtractionService,
-            llm_video_analysis_service: LLMVideoAnalysisService,
-            finalize_content_queue_name: str,
-            video_summary_queue_name: str,
+        self,
+        event_messaging_service: EventMessagingService,
+        file_upload_service: AzureBlobFileUploadService,
+        video_extraction_service: VideoExtractionService,
+        llm_video_analysis_service: LLMVideoAnalysisService,
+        finalize_content_queue_name: str,
+        video_summary_queue_name: str,
     ):
         """
         Creates an asynchronous message handler function for processing incoming Service Bus messages.
@@ -161,7 +157,7 @@ class MessageHandler:
             )
 
     async def get_video_extraction_status(
-            self, video_upload_metadata: VideoUploadMetadata
+        self, video_upload_metadata: VideoUploadMetadata
     ) -> ContentResult:
         """
         Retrieves the content understanding status for a given content ID.

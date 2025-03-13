@@ -1,5 +1,6 @@
 import pytest
-from summarize_video_content import app, MessageHandler
+from summarize_video_content.src import app
+from summarize_video_content.src.app import MessageHandler
 from core import ServiceBusEventMessagingService
 
 @pytest.fixture
@@ -12,11 +13,10 @@ def service_bus(mocker):
 @pytest.fixture
 def message_handler(mocker):
     return MessageHandler(
-        service_bus_messaging_service=mocker.MagicMock(),
+        event_messaging_service=mocker.MagicMock(),
         file_upload_service=mocker.MagicMock(),
-        content_understanding_client=mocker.MagicMock(),
-        openai_service=mocker.MagicMock(),
-        openai_model_name="gpt-3.5-turbo",
+        video_extraction_service=mocker.MagicMock(),
+        llm_video_analysis_service=mocker.MagicMock(),
         finalize_content_queue_name="FAKE content QUEUE",
         video_summary_queue_name="FAKE Summary QUEUE",
     )

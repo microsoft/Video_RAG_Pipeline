@@ -25,3 +25,12 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["summarize_video_content"]
+
+[dependency-groups]
+test = [
+    "pytest>=8.3.5",
+    "pytest-timeout",
+    "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+]

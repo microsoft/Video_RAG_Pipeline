@@ -1,6 +1,7 @@
 from core.src.models import (
     BlobMetadata,
     VideoUploadMetadata,
+    ProcessingResultEvent,
 )
 
 from core.src.exceptions import (
@@ -26,6 +27,7 @@ from core.src.services import (
     ContentResult,
     MultiModalLLMExtractionService,
     VideoExtractionService,
+    LLMVideoAnalysisService,
 )
 
 __all__ = [
