@@ -561,9 +561,25 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
     ]
   }
 }
+
+// Deploy the Foundry Hub from the module
+module foundryHub './modules/ai-services.bicep' = {
+  name: 'foundry-hub'
+  params: {
+    location: location
+    tags: tags
+    foundryHubName:  '${abbrs.machineLearningServicesWorkspaces}${resourceToken}'
+    containerRegistryResourceId: containerRegistry.outputs.resourceId
+    applicationInsightsResourceId: monitoring.outputs.applicationInsightsResourceId
+    keyVaultResourceId: keyVault.outputs.resourceId 
+  }
+}
+
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.outputs.loginServer
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.uri
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
+output AZURE_FOUNDRY_HUB_NAME string = foundryHub.outputs.name
+output AZURE_FOUNDRY_HUB_ID string = foundryHub.outputs.resourceId
 output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = chunkVideoContent.outputs.resourceId
 output AZURE_RESOURCE_INDEX_FILE_API_ID string = indexFileApi.outputs.resourceId
 output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = summarizeVideoContent.outputs.resourceId
