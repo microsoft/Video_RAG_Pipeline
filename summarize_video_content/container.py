@@ -1,7 +1,7 @@
 import logging
 
 from dependency_injector import containers, providers
-from openai import AzureOpenAI
+from openai import AsyncAzureOpenAI
 
 from core import create_service_bus_client, create_azure_credential, create_azure_ad_token
 from core.services import ServiceBusEventMessagingService, ContentUnderstandingClient, AzureBlobFileUploadService, \
@@ -63,14 +63,14 @@ class Container(containers.DeclarativeContainer):
     )
 
     openai_service_key_auth = providers.Singleton(
-        AzureOpenAI,
+        AsyncAzureOpenAI,
         api_key=config.azure_openai_key,
         api_version=config.azure_openai_api_version,
         azure_endpoint=config.azure_openai_endpoint
     )
 
     openai_service_managed_identity_auth = providers.Singleton(
-        AzureOpenAI,
+        AsyncAzureOpenAI,
         azure_ad_token=azure_ad_token_resource,
         api_version=config.azure_openai_api_version,
         azure_endpoint=config.azure_openai_endpoint
