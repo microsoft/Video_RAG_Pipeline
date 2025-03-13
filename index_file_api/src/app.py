@@ -7,14 +7,13 @@ import requests
 from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
 
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends
 
 from core import ServiceBusEventMessagingService, BlobMetadata
 
 from .container import Container
 from .models import Payload
 from .settings import AppSettings
-
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -82,9 +81,9 @@ async def extract_file_type(file_url: str) -> str:
 @app.post("/process")
 @inject
 async def process_payload(
-        payload: Payload,
-        service_bus_messaging_service: ServiceBusEventMessagingService = Depends(
-            Provide[Container.service_bus_messaging_service])
+    payload: Payload,
+    service_bus_messaging_service: ServiceBusEventMessagingService = Depends(
+        Provide[Container.service_bus_messaging_service])
 ):
     try:
         logger.info("Received payload for processing")
