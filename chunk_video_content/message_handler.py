@@ -5,7 +5,7 @@ import os  # Added import for file operations
 
 from azure.servicebus import ServiceBusMessage
 from core.models import BlobMetadata, VideoUploadMetadata
-from core.services import EventMessagingService, VideoAnalysisService, AnimatedGifConverter, AzureBlobFileUploadService
+from core.services import EventMessagingService, VideoExtractionService, AnimatedGifConverter, AzureBlobFileUploadService
 
 from core.utils import get_file_name_from_url, is_file_type
 
@@ -15,7 +15,7 @@ class MessageHandler():
         self,
         event_messaging_service: EventMessagingService,
         gif_converter: AnimatedGifConverter,
-        video_analysis_service: VideoAnalysisService,
+        video_extraction_service: VideoExtractionService,
         blob_upload_service: AzureBlobFileUploadService,
         finalize_content_queue_name: str,
 
@@ -24,13 +24,13 @@ class MessageHandler():
         Creates an asynchronous message handler function for processing incoming Service Bus messages.
 
         :param event_messaging_service: Service for interacting with the event messaging system
-        :param video_analysis_service: Service for video analysis and metadata extraction
+        :param video_extraction_service: Service for video extraction and analysis
         :param settings: Application settings containing configuration parameters
         :return: Asynchronous function to handle messages
         """
         self.event_messaging_service = event_messaging_service
         self.gif_converter = gif_converter
-        self.video_analysis_service = video_analysis_service
+        self.video_extraction_service = video_extraction_service
         self.blob_upload_service = blob_upload_service
         self.finalize_content_queue_name = finalize_content_queue_name
         self.logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ class MessageHandler():
             # Upload the content URL to the Content Understanding service and get the video ID
             self.logger.info(blob_metadata.fileUrl)
             
-            video_id = await self.video_analysis_service.analyze_video_at_url(
+            video_id = await self.video_extraction_service.extract_video_at_url(
                 content_url=blob_metadata.fileUrl
             )
             self.logger.info(f'Video ID: {video_id}')
@@ -121,4 +121,3 @@ class MessageHandler():
             self.logger.error(f"Async HTTP error: {aio_err}", exc_info=True)
         except Exception as e:
             self.logger.error(f"Unexpected error processing message: {e}", exc_info=True)
-            

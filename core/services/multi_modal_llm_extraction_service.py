@@ -1,10 +1,10 @@
-from .video_analysis_service import VideoAnalysisService
+from .video_extraction_service import VideoExtractionService
 from core.models import ContentResult
 
-class MultiModalLLMAnalysisService(VideoAnalysisService):
-    async def analyze_video_at_url(self, content_url: str) -> str:
+class MultiModalLLMExtractionService(VideoExtractionService):
+    async def extract_video_at_url(self, content_url: str) -> str:
         """
-        Uploads a content URL for analysis.
+        Extracts and analyzes a video at the given url.
 
         Args:
             content_url (str): The URL of the content to analyze.
@@ -14,9 +14,9 @@ class MultiModalLLMAnalysisService(VideoAnalysisService):
         """
         raise NotImplementedError
 
-    async def get_content_status(self, content_id: str) -> ContentResult:
+    async def get_extracted_video_status(self, content_id: str) -> ContentResult:
         """
-        Retrieves the status of the analyzed content.
+        Retrieves the status of the extraction and analysis process.
 
         Args:
             content_id (str): The ID of the content to check.

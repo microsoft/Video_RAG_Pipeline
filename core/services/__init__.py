@@ -2,8 +2,8 @@ from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 from azure.core.credentials import AzureNamedKeyCredential
 
 from .content_understanding_client import *
-from .video_analysis_service import *
-from .multi_modal_llm_analysis_service import *
+from .video_extraction_service import *
+from .multi_modal_llm_extraction_service import *
 from .event_messaging_service import *
 from .service_bus_event_messaging_service import *
 from .animated_gif_converter import *
@@ -69,9 +69,9 @@ async def create_content_understanding_http_client_session(key: str, logger: Opt
 __all__ = [
     "ServiceBusEventMessagingService",
     "EventMessagingService",
-    "VideoAnalysisService",
+    "VideoExtractionService",
+    "MultiModalLLMExtractionService",
     "ContentUnderstandingClient",
-    "MultiModalLLMAnalysisService",
     "ContentResult",
     "AnimatedGifConverter",
     "AzureBlobFileUploadService",

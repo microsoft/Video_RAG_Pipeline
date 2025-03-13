@@ -105,8 +105,8 @@ class AppSettings(BaseSettings):
     # Name of the video analyzer used for processing videos
     video_analyzer_name: str
 
-    # Specifies the type of service to use for video analysis (choices are content_understanding, multimodal_llm (not yet implemented))
-    analysis_service_type: str = "content_understanding"
+    # Specifies the type of service to use for video extraction (choices are content_understanding, multimodal_llm (not yet implemented))
+    extraction_service_type: str = "content_understanding"
 
     # Name of the Azure Storage account where blobs are stored
     storage_account_name: str

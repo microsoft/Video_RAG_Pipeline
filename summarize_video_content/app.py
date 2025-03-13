@@ -76,12 +76,9 @@ async def setup_container():
     await container.shutdown_resources()
 
 def main():
-    asyncio.run(setup_container())
-
     # Configure the logging module to capture info-level logs and above
     logging.basicConfig(level=settings.logging_level)
-    # Run the main asynchronous function using asyncio's event loop
-    asyncio.run(main_logic(settings=settings))
+    asyncio.run(setup_container())
 
 if __name__ == "__main__":
     main()

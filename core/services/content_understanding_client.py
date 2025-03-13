@@ -3,10 +3,10 @@ import logging
 from typing import Optional
 
 from core.models import ContentResult
-from .video_analysis_service import VideoAnalysisService
+from .video_extraction_service import VideoExtractionService
 
 
-class ContentUnderstandingClient(VideoAnalysisService):
+class ContentUnderstandingClient(VideoExtractionService):
     """
     An asynchronous client for interacting with the Content Understanding API using aiohttp.
 
@@ -41,9 +41,9 @@ class ContentUnderstandingClient(VideoAnalysisService):
         # Initialize the logger
         self.logger = logging.getLogger(__name__)
 
-    async def get_content_status(self, content_id: str) -> ContentResult:
+    async def get_extracted_video_status(self, content_id: str) -> ContentResult:
         """
-        Retrieves the status of the analyzed content.
+        Retrieves the status of the extraction and analysis process.
 
         Args:
             content_id (str): The ID of the content to check.
@@ -76,15 +76,15 @@ class ContentUnderstandingClient(VideoAnalysisService):
             self.logger.exception(f"An unexpected error occurred while getting content status: {err}")
             raise
 
-    async def analyze_video_at_url(self, content_url: str) -> str:
+    async def extract_video_at_url(self, content_url: str) -> str:
         """
-        Uploads a content URL for analysis.
+        Extracts and analyzes a video at the given url.
 
         Args:
             content_url (str): The URL of the content to analyze.
 
         Returns:
-            str: The ID of the analysis result.
+            str: An ID to query the service for the analysis result.
 
         Raises:
             aiohttp.ClientResponseError: If the HTTP request returned an unsuccessful status code.
