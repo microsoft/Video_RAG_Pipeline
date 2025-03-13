@@ -9,7 +9,6 @@ from core import (
     ContentUnderstandingClient,
     AnimatedGifConverter,
     AzureBlobFileUploadService,
-    VideoExtractionService,
     MultiModalLLMExtractionService,
 )
 from .message_handler import MessageHandler

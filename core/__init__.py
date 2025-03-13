@@ -24,6 +24,8 @@ from core.src.services import (
     AnimatedGifConverter,
     AzureBlobFileUploadService,
     ContentResult,
+    MultiModalLLMExtractionService,
+    VideoExtractionService,
 )
 
 __all__ = [
