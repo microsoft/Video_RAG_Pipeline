@@ -9,8 +9,10 @@ from core import (
     create_azure_ad_token, 
     ServiceBusEventMessagingService,
     ContentUnderstandingClient,
-    AzureBlobFileUploadService, 
-    create_content_understanding_http_client_session
+    AzureBlobFileUploadService,
+    MultiModalLLMExtractionService,
+    LLMVideoAnalysisService,
+    create_content_understanding_http_client_session,
 )
 
 from .message_handler import MessageHandler
@@ -41,6 +43,16 @@ class Container(containers.DeclarativeContainer):
         endpoint=config.content_understanding_endpoint,
         analyzer_name=config.video_analyzer_name,
         api_version=config.content_understanding_api_version,
+    )
+
+    multi_modal_llm_extraction_service = providers.Singleton(
+        MultiModalLLMExtractionService
+    )
+
+    video_extraction_service = providers.Selector(
+        config.extraction_service_type,
+        content_understanding=content_understanding_client,
+        multimodal_llm=multi_modal_llm_extraction_service
     )
 
     file_upload_service = providers.Singleton(
@@ -83,13 +95,23 @@ class Container(containers.DeclarativeContainer):
         service_bus_client=service_bus_client,
     )
 
+    event_messaging_service = providers.Selector(
+        config.message_broker_type,
+        service_bus=service_bus_messaging_service
+    )
+
+    llm_video_analysis_service = providers.Singleton(
+        LLMVideoAnalysisService,
+        openai_service=openai_service,
+        openai_model_name=config.azure_openai_model_name
+    )
+
     message_handler = providers.Singleton(
         MessageHandler,
-        service_bus_messaging_service=service_bus_messaging_service,
+        event_messaging_service=event_messaging_service,
         file_upload_service=file_upload_service,
-        content_understanding_client=content_understanding_client,
-        openai_service=openai_service,
-        openai_model_name=config.azure_openai_model_name,
+        video_extraction_service=video_extraction_service,
+        llm_video_analysis_service=llm_video_analysis_service,
         finalize_content_queue_name=config.finalize_content_queue,
         video_summary_queue_name=config.video_summary_queue
     )

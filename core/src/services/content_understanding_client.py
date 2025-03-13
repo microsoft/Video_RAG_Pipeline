@@ -3,8 +3,8 @@ import logging
 from typing import Optional
 
 from ..models import ContentResult
-
-class ContentUnderstandingClient:
+from .video_extraction_service import VideoExtractionService
+class ContentUnderstandingClient(VideoExtractionService):
     """
     An asynchronous client for interacting with the Content Understanding API using aiohttp.
 
@@ -39,23 +39,12 @@ class ContentUnderstandingClient:
         # Initialize the logger
         self.logger = logging.getLogger(__name__)
 
-    # TODO: Remove this
-    # This was needed because of the summarize_video_content service
-    # Such service should implement the container.py approach as in chunk_video_content service
-    async def __aenter__(self):
-        return self
-
-    # TODO: Same as above, remove this
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.session.close()
-
-    async def get_content_status(self, content_id: str) -> ContentResult:
+    async def get_extracted_video_status(self, content_id: str) -> ContentResult:
         """
-        Retrieves the status of the analyzed content.
+        Retrieves the status of the extraction and analysis process.
 
         Args:
             content_id (str): The ID of the content to check.
-            analyzer_name (str): The name of the analyzer used.
 
         Returns:
             ContentResult: The result of the content analysis.
@@ -85,15 +74,15 @@ class ContentUnderstandingClient:
             self.logger.exception(f"An unexpected error occurred while getting content status: {err}")
             raise
 
-    async def upload_url(self, content_url: str) -> str:
+    async def extract_video_at_url(self, content_url: str) -> str:
         """
-        Uploads a content URL for analysis.
+        Extracts and analyzes a video at the given url.
 
         Args:
             content_url (str): The URL of the content to analyze.
 
         Returns:
-            str: The ID of the analysis result.
+            str: An ID to query the service for the analysis result.
 
         Raises:
             aiohttp.ClientResponseError: If the HTTP request returned an unsuccessful status code.

@@ -67,10 +67,4 @@ class EventMessagingService(Protocol):
             message_handler (Callable): A coroutine function to handle individual messages.
         """
 
-    async def close(self):
-        """
-        Asynchronous context manager exit point.
-        Cleans up the Messaging Service client.
-        """
-
     
