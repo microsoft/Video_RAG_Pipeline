@@ -1,5 +1,5 @@
 from typing import Protocol
-from core.models import ContentResult
+from ..models import ContentResult
 
 class VideoExtractionService(Protocol):
     async def extract_video_at_url(self, content_url: str) -> str:

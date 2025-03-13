@@ -28,9 +28,9 @@ stop_event = asyncio.Event()
 
 @inject
 async def main_logic(
-        event_messaging_service: EventMessagingService = Provide[Container.event_messaging_service],
-        message_handler: MessageHandler = Provide[Container.message_handler],
-        index_file_queue: str = Provide[Container.config.index_file_queue]
+    event_messaging_service: EventMessagingService = Provide[Container.event_messaging_service],
+    message_handler: MessageHandler = Provide[Container.message_handler],
+    index_file_queue: str = Provide[Container.config.index_file_queue]
 ):
     """
     The main asynchronous function that initializes services and starts listening for messages.
@@ -57,7 +57,6 @@ async def main_logic(
         # Log any exceptions that occur during the initialization of the application
         logger.error(f"Error initializing application: {e}", exc_info=True)
 
-
 async def main_composition_root():
     """
     The main composition root function that initializes the application and starts the main logic.
@@ -72,10 +71,8 @@ async def main_composition_root():
     await main_logic()
     await container.shutdown_resources()
 
-
 def main():
     asyncio.run(main_composition_root())
-
 
 if __name__ == "__main__":
     main()

@@ -5,7 +5,3 @@ class RetryQueueingException(Exception):
         self.message = message
         self.event_message = event_message
         super().__init__(self.message)
-
-__all__ = [
-    "RetryQueueingException"
-]

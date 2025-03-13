@@ -33,11 +33,11 @@ class ServiceBusEventMessagingService(EventMessagingService):
         self.logger = logging.getLogger(__name__)
 
     async def send_message(
-            self,
-            queue_name: str,
-            body: str,
-            correlation_id: uuid.UUID = None,
-            trace_id: uuid.UUID = None
+        self,
+        queue_name: str,
+        body: str,
+        correlation_id: uuid.UUID = None,
+        trace_id: uuid.UUID = None,
     ) -> uuid.UUID:
         """
         Sends a message to a specified Service Bus queue.
@@ -86,12 +86,12 @@ class ServiceBusEventMessagingService(EventMessagingService):
             raise
 
     async def schedule_message(
-            self,
-            queue_name: str,
-            body: str,
-            schedule_time_utc: datetime,
-            correlation_id: uuid.UUID = None,
-            trace_id: uuid.UUID = None
+        self,
+        queue_name: str,
+        body: str,
+        schedule_time_utc: datetime,
+        correlation_id: uuid.UUID = None,
+        trace_id: uuid.UUID = None,
     ) -> uuid.UUID:
         """
         Schedules a message to be sent to a specified Service Bus queue at a future time.
@@ -142,10 +142,10 @@ class ServiceBusEventMessagingService(EventMessagingService):
             raise
 
     async def process_messages(
-            self,
-            queue_name: str,
-            stop_event: asyncio.Event,
-            message_handler: Callable
+        self,
+        queue_name: str,
+        stop_event: asyncio.Event,
+        message_handler: Callable,
     ):
         """
         Processes messages from a Service Bus receiver and delegates message processing
@@ -156,7 +156,7 @@ class ServiceBusEventMessagingService(EventMessagingService):
             stop_event (asyncio.Event): An event to signal when to stop processing.
             message_handler (Callable): A coroutine function to handle individual messages.
         """
-        try:
+        try: # TODO: Look into consolidating the 3/4 nested try/except blocks into one
             # Asynchronously create a receiver for the specified queue
             async with self.service_bus_client.get_queue_receiver(queue_name=queue_name) as receiver:
                 renewer = AutoLockRenewer()  # Handles automatic lock renewal for messages

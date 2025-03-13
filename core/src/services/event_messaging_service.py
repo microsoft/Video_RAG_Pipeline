@@ -6,11 +6,11 @@ from datetime import datetime
 
 class EventMessagingService(Protocol):
     async def send_message(
-            self,
-            queue_name: str,
-            body: str,
-            correlation_id: uuid.UUID = None,
-            trace_id: uuid.UUID = None
+        self,
+        queue_name: str,
+        body: str,
+        correlation_id: uuid.UUID = None,
+        trace_id: uuid.UUID = None
     ) -> uuid.UUID:
         """
         Sends a message to a specified queue.
@@ -28,12 +28,12 @@ class EventMessagingService(Protocol):
         """
 
     async def schedule_message(
-            self,
-            queue_name: str,
-            body: str,
-            schedule_time_utc: datetime,
-            correlation_id: uuid.UUID = None,
-            trace_id: uuid.UUID = None
+        self,
+        queue_name: str,
+        body: str,
+        schedule_time_utc: datetime,
+        correlation_id: uuid.UUID = None,
+        trace_id: uuid.UUID = None
     ) -> uuid.UUID:
         """
         Schedules a message to be sent to a specified queue at a future time.
@@ -52,10 +52,10 @@ class EventMessagingService(Protocol):
         """
 
     async def process_messages(
-            self,
-            queue_name: str,
-            stop_event: asyncio.Event,
-            message_handler: Callable
+        self,
+        queue_name: str,
+        stop_event: asyncio.Event,
+        message_handler: Callable
     ):
         """
         Processes messages from a queue receiver and delegates message processing
@@ -66,5 +66,3 @@ class EventMessagingService(Protocol):
             stop_event (asyncio.Event): An event to signal when to stop processing.
             message_handler (Callable): A coroutine function to handle individual messages.
         """
-
-    

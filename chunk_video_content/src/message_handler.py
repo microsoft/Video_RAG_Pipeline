@@ -8,7 +8,6 @@ from core import (
     BlobMetadata,
     VideoUploadMetadata,
     EventMessagingService,
-    ContentUnderstandingClient,
     VideoExtractionService,
     AnimatedGifConverter,
     AzureBlobFileUploadService,

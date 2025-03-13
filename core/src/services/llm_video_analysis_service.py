@@ -2,22 +2,25 @@ import logging
 
 from openai import OpenAI
 
-from core.exceptions import RetryQueueingException
-from core.models import VideoUploadMetadata, ContentResult, Content, VideoSubjects
+from ..exceptions import RetryQueueingException
+from ..models import VideoUploadMetadata, ContentResult, Content, VideoSubjects
 
 logger = logging.getLogger(__name__)
 
-
 class LLMVideoAnalysisService:
 
-    def __init__(self, openai_service: OpenAI, openai_model_name: str) -> None:
+    def __init__(
+        self,
+        openai_service: OpenAI,
+        openai_model_name: str,
+    ) -> None:
         self.openai_service = openai_service
         self.openai_model_name = openai_model_name
 
     async def find_video_subjects(
-            self,
-            content_result: ContentResult,
-            video_upload_metadata: VideoUploadMetadata
+        self,
+        content_result: ContentResult,
+        video_upload_metadata: VideoUploadMetadata,
     ) -> VideoSubjects:
         """
         Extracts and summarizes the main subjects or topics discussed throughout a video by analyzing segmented content using Azure OpenAI.
@@ -118,10 +121,10 @@ class LLMVideoAnalysisService:
             )
 
     async def critique_or_improve_video_subjects(
-            self,
-            content_result: ContentResult,
-            initial_subjects: VideoSubjects,
-            video_upload_metadata: VideoUploadMetadata
+        self,
+        content_result: ContentResult,
+        initial_subjects: VideoSubjects,
+        video_upload_metadata: VideoUploadMetadata,
     ) -> VideoSubjects:
         """
         Critically assesses the initial subject segmentation of a video and improves it if necessary using Azure OpenAI.
@@ -223,10 +226,10 @@ class LLMVideoAnalysisService:
             )
 
     async def create_video_summary(
-            self,
-            subject: str,
-            contents: list[Content],
-            video_upload_metadata: VideoUploadMetadata
+        self,
+        subject: str,
+        contents: list[Content],
+        video_upload_metadata: VideoUploadMetadata,
     ) -> str:
         """
         Creates a summary of the video content using Azure OpenAI.

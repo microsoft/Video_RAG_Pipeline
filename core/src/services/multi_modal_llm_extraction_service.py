@@ -1,5 +1,5 @@
 from .video_extraction_service import VideoExtractionService
-from core.models import ContentResult
+from ..models import ContentResult
 
 class MultiModalLLMExtractionService(VideoExtractionService):
     async def extract_video_at_url(self, content_url: str) -> str:

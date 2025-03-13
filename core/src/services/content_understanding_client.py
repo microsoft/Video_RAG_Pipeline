@@ -4,6 +4,7 @@ from typing import Optional
 
 from ..models import ContentResult
 from .video_extraction_service import VideoExtractionService
+
 class ContentUnderstandingClient(VideoExtractionService):
     """
     An asynchronous client for interacting with the Content Understanding API using aiohttp.
@@ -16,11 +17,11 @@ class ContentUnderstandingClient(VideoExtractionService):
     """
 
     def __init__(
-            self,
-            session: aiohttp.ClientSession,
-            endpoint: str,
-            api_version: str,
-            analyzer_name: str,
+        self,
+        session: aiohttp.ClientSession,
+        endpoint: str,
+        api_version: str,
+        analyzer_name: str,
     ):
         """
         Initialize the ContentUnderstandingClient with the endpoint, key, and API version.

@@ -5,10 +5,15 @@ from moviepy import VideoFileClip, vfx
 
 class AnimatedGifConverter():
 
-    def __init__(self, download_dir: str, client_session: aiohttp.ClientSession, min_width=320, min_height=240):
+    def __init__(
+        self,
+        download_dir: str,
+        client_session: aiohttp.ClientSession,
+        min_width=320,
+        min_height=240,
+    ):
         self.download_dir = download_dir
         self.client_session = client_session
-
         self.min_width = min_width
         self.min_height = min_height
 

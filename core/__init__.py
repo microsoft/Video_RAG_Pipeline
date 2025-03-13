@@ -1,7 +1,6 @@
 from core.src.models import (
     BlobMetadata,
     VideoUploadMetadata,
-    SummarizedVideoMetadata,
 )
 
 from core.src.exceptions import (
