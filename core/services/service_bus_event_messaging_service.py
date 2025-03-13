@@ -9,9 +9,9 @@ from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer
 
 from core.exceptions import FatalQueueingException, RetryQueueingException
+from .event_messaging_service import EventMessagingService
 
-
-class ServiceBusEventMessagingService:
+class ServiceBusEventMessagingService(EventMessagingService):
     """
     A service class for interacting with Azure Service Bus, providing functionality to send,
     schedule, and process messages asynchronously.

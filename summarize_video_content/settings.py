@@ -42,6 +42,9 @@ class AppSettings(BaseSettings):
         video_analyzer_name (str):
             The name of the video analyzer used for processing videos.
 
+        analysis_service_type: str = "content_understanding"
+            The type of service to use for video analysis (choices are content_understanding, multimodal_llm (not yet implemented))
+
         storage_account_name (str):
             The name of the Azure Storage account where blobs are stored.
 
@@ -68,6 +71,9 @@ class AppSettings(BaseSettings):
 
     # Azure Service Bus api key name
     service_bus_api_key_name: Optional[str] = None
+
+    # Message broker type (valid options: "service_bus".  "kafka" coming soon)
+    message_broker_type: str = "service_bus"
 
     # Name of the Service Bus queue used to finalize content processing
     finalize_content_queue: str
@@ -98,6 +104,9 @@ class AppSettings(BaseSettings):
 
     # Name of the video analyzer used for processing videos
     video_analyzer_name: str
+
+    # Specifies the type of service to use for video extraction (choices are content_understanding, multimodal_llm (not yet implemented))
+    extraction_service_type: str = "content_understanding"
 
     # Name of the Azure Storage account where blobs are stored
     storage_account_name: str

@@ -5,8 +5,8 @@ from azure.servicebus import ServiceBusMessage
 
 from core.utils import get_file_name_from_url
 from core.models import ContentResult, VideoUploadMetadata, ProcessingResultEvent
-from core.services import ContentUnderstandingClient, AzureBlobFileUploadService, LLMVideoAnalysisService, \
-    ServiceBusEventMessagingService
+from core.services import AzureBlobFileUploadService, LLMVideoAnalysisService, \
+    EventMessagingService, VideoExtractionService
 from core.exceptions import FatalQueueingException, RetryQueueingException
 
 logger = logging.getLogger(__name__)
@@ -16,9 +16,9 @@ class MessageHandler:
 
     def __init__(
             self,
-            service_bus_messaging_service: ServiceBusEventMessagingService,
+            event_messaging_service: EventMessagingService,
             file_upload_service: AzureBlobFileUploadService,
-            content_understanding_client: ContentUnderstandingClient,
+            video_extraction_service: VideoExtractionService,
             llm_video_analysis_service: LLMVideoAnalysisService,
             finalize_content_queue_name: str,
             video_summary_queue_name: str,
@@ -26,19 +26,19 @@ class MessageHandler:
         """
         Creates an asynchronous message handler function for processing incoming Service Bus messages.
 
-        :param service_bus_messaging_service: The Service Bus messaging service to send and receive messages.
+        :param event_messaging_service: The messaging service to send and receive messages.
         :param file_upload_service: The file upload service to manage uploaded content.
-        :param content_understanding_client: The client for the content understanding service.
+        :param video_extraction_service: The service for extracting video content.
         :param llm_video_analysis_service: The service for analyzing video content using Azure OpenAI.
         :param finalize_content_queue_name: The name of the queue for finalizing content processing.
         :param video_summary_queue_name: The name of the queue for sending video summaries.
 
         :return: A new instance of the MessageHandler class.
         """
-        self.service_bus_messaging_service = service_bus_messaging_service
+        self.event_messaging_service = event_messaging_service
         self.file_upload_service = file_upload_service
 
-        self.content_understanding_client = content_understanding_client
+        self.video_extraction_service = video_extraction_service
 
         self.llm_video_analysis_service = llm_video_analysis_service
 
@@ -72,15 +72,13 @@ class MessageHandler:
 
         # Retrieve the content understanding status for the given video ID
         # Raise a retrial exception if the endpoint is unreachable for some reason
-        content_result = await self.get_content_understanding_status(
+        content_result = await self.get_video_extraction_status(
             video_upload_metadata=video_upload_metadata
         )
 
         if content_result.status == "Succeeded":
             # Check if there are any warnings in the content understanding result
-            if content_result.result.warnings and len(content_result.result.warnings) > 0:
-                # Log the warnings from the content understanding result
-                logger.warning(f"Content Understanding has fatal warnings: {content_result.result.warnings} :: correlation_id={correlation_id}")
+            if content_result.result.warnings and len(content_result.result.warnings) > 0 and len(content_result.result.contents) == 0 and len(content_result.result.contents[0].fields) == 0:
                 # Raise a fatal exception if there are warnings in the content understanding result
                 if len(content_result.result.contents) == 0 or not content_result.result.contents[0].fields:
                     raise FatalQueueingException(f"Content Understanding has fatal warnings :: correlation_id={correlation_id}")
@@ -128,16 +126,16 @@ class MessageHandler:
                     endTimeMs=subject_content_set.endTimeMs
                 )
 
-                # Send the summarized metadata to the designated queue
-                await self.service_bus_messaging_service.send_message(
-                    queue_name=self.video_summary_queue_name,
-                    body=processing_result.model_dump_json(),
-                    correlation_id=correlation_id,
-                    trace_id=trace_id
-                )
+            # Send the summarized metadata to the designated queue
+            await self.event_messaging_service.send_message(
+                queue_name=self.video_summary_queue_name,
+                body=processing_result.model_dump_json(),
+                correlation_id=correlation_id,
+                trace_id=trace_id
+            )
 
-                # Log that the summarized message has been sent successfully
-                logger.info(f"Processing result event produced successfully :: correlation_id={correlation_id}")
+            # Log that the summarized message has been sent successfully
+            logger.info(f"Processing result event produced successfully :: correlation_id={correlation_id}")
 
             if video_upload_metadata.isUploaded:
                 file_name: str = get_file_name_from_url(video_upload_metadata.fileUrl)
@@ -152,7 +150,7 @@ class MessageHandler:
                 video_upload_metadata.model_dump_json()
             )
 
-    async def get_content_understanding_status(
+    async def get_video_extraction_status(
             self, video_upload_metadata: VideoUploadMetadata
     ) -> ContentResult:
         """
@@ -169,7 +167,7 @@ class MessageHandler:
         """
         try:
             # Fetch the status of the content analysis
-            content_result = await self.content_understanding_client.get_content_status(
+            content_result = await self.video_extraction_service.get_extracted_video_status(
                 content_id=video_upload_metadata.videoId
             )
 
@@ -177,6 +175,6 @@ class MessageHandler:
         except Exception as e:
             # Raise
             raise RetryQueueingException(
-                "Error getting video description from Content Understanding",
+                "Error getting video description from Video Extraction Service",
                 video_upload_metadata.model_dump_json()
             )
