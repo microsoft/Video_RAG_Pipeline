@@ -16,8 +16,6 @@ param applicationInsightsResourceId string
 @description('Resource ID of the Key Vault')
 param keyVaultResourceId string
 
-<<<<<<< Updated upstream
-=======
 @description('Name of the Key Vault for storing secrets')
 param keyVaultName string
 
@@ -36,7 +34,6 @@ param gpt4oModelVersion string = '2024-05-13'
 @description('Capacity for the GPT-4o model deployment')
 param gpt4oCapacity int = 1
 
->>>>>>> Stashed changes
 resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview' = {
   name: foundryHubName
   location: location
@@ -55,11 +52,10 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview'
   tags: tags
 }
 
-<<<<<<< Updated upstream
 output resourceId string = aiHub.id
 output name string = aiHub.name
 output principalId string = aiHub.identity.principalId
-=======
+
 // Add Cognitive Services account of kind AIServices
 resource cognitiveServicesAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: cognitiveServicesAccountName
@@ -211,11 +207,7 @@ resource deployGpt4oModel 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   }
 }
 
-output resourceId string = aiHub.id
-output name string = aiHub.name
-output principalId string = aiHub.identity.principalId
 output cognitiveServicesAccountName string = cognitiveServicesAccount.name
 output cognitiveServicesAccountId string = cognitiveServicesAccount.id
 output cognitiveServicesEndpoint string = cognitiveServicesAccount.properties.endpoint
 output gpt4oDeploymentName string = gpt4oDeploymentName
->>>>>>> Stashed changes
