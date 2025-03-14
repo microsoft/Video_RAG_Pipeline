@@ -135,33 +135,49 @@ var summarizeVideoContentEnvVars = [
   { name: 'STORAGE_ACCOUNT_API_KEY', secretRef: 'storage-account-api-key' }
 ]
 
-// Deploy container apps
-module containerApps './modules/container-apps.bicep' = {
-  name: 'container-apps'
+// Deploy individual container apps
+module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
+  name: 'chunk-video-content-app'
   params: {
     location: location
     tags: tags
     applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
     containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
-    
-    // Chunk Video Content App
     chunkVideoContentExists: chunkVideoContentExists
     chunkVideoContentDefinition: chunkVideoContentDefinition
     chunkVideoContentIdentityResourceId: identities.outputs.chunkVideoContentIdentityResourceId
     chunkVideoContentIdentityClientId: identities.outputs.chunkVideoContentIdentityClientId
     chunkVideoContentSecrets: chunkVideoContentSecrets
     chunkVideoContentEnvVars: chunkVideoContentEnvVars
-    
-    // Index File API
+  }
+}
+
+module indexFileApiApp './app-modules/index-file-api.bicep' = {
+  name: 'index-file-api-app'
+  params: {
+    location: location
+    tags: tags
+    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
+    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     indexFileApiExists: indexFileApiExists
     indexFileApiDefinition: indexFileApiDefinition
     indexFileApiIdentityResourceId: identities.outputs.indexFileApiIdentityResourceId
     indexFileApiIdentityClientId: identities.outputs.indexFileApiIdentityClientId
     indexFileApiSecrets: indexFileApiSecrets
     indexFileApiEnvVars: indexFileApiEnvVars
-    
-    // Summarize Video Content
+  }
+}
+
+module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = {
+  name: 'summarize-video-content-app'
+  params: {
+    location: location
+    tags: tags
+    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
+    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     summarizeVideoContentExists: summarizeVideoContentExists
     summarizeVideoContentDefinition: summarizeVideoContentDefinition
     summarizeVideoContentIdentityResourceId: identities.outputs.summarizeVideoContentIdentityResourceId
@@ -172,8 +188,8 @@ module containerApps './modules/container-apps.bicep' = {
 }
 
 // Deploy the Foundry Hub from the module
-module foundryHub './modules/ai-services.bicep' = {
-  name: 'foundry-hub'
+module aiServices './modules/ai-services.bicep' = {
+  name: 'ai-services'
   params: {
     location: location
     tags: tags
@@ -181,14 +197,23 @@ module foundryHub './modules/ai-services.bicep' = {
     containerRegistryResourceId: coreInfra.outputs.containerRegistryResourceId
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     keyVaultResourceId: coreInfra.outputs.keyVaultResourceId
+    keyVaultName: coreInfra.outputs.keyVaultName
+    cognitiveServicesAccountName: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
+    gpt4oDeploymentName: 'gpt-4o'
+    gpt4oModelName: 'gpt-4o'
+    gpt4oModelVersion: '2024-05-13'
   }
 }
 
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = coreInfra.outputs.containerRegistryLoginServer
 output AZURE_KEY_VAULT_ENDPOINT string = coreInfra.outputs.keyVaultUri
 output AZURE_KEY_VAULT_NAME string = coreInfra.outputs.keyVaultName
-output AZURE_FOUNDRY_HUB_NAME string = foundryHub.outputs.name
-output AZURE_FOUNDRY_HUB_ID string = foundryHub.outputs.resourceId
-output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = containerApps.outputs.chunkVideoContentResourceId
-output AZURE_RESOURCE_INDEX_FILE_API_ID string = containerApps.outputs.indexFileApiResourceId
-output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = containerApps.outputs.summarizeVideoContentResourceId
+output AZURE_FOUNDRY_HUB_NAME string = aiServices.outputs.name
+output AZURE_FOUNDRY_HUB_ID string = aiServices.outputs.resourceId
+output AZURE_COGNITIVE_SERVICES_NAME string = aiServices.outputs.cognitiveServicesAccountName
+output AZURE_COGNITIVE_SERVICES_ID string = aiServices.outputs.cognitiveServicesAccountId
+output AZURE_COGNITIVE_SERVICES_ENDPOINT string = aiServices.outputs.cognitiveServicesEndpoint
+output AZURE_GPT4O_DEPLOYMENT_NAME string = aiServices.outputs.gpt4oDeploymentName
+output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = chunkVideoContentApp.outputs.resourceId
+output AZURE_RESOURCE_INDEX_FILE_API_ID string = indexFileApiApp.outputs.resourceId
+output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = summarizeVideoContentApp.outputs.resourceId
