@@ -1,5 +1,5 @@
 @description('The location used for all deployed resources')
-param location string = 'swedencentral'
+param location string = resourceGroup().location
 
 @description('Tags that will be applied to all resources')
 param tags object = {}
