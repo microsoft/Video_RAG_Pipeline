@@ -5,10 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "setuptools",
     "httpx",
     "asyncio",
-    "azure.servicebus",
+    "azure-servicebus",
     "pydantic",
     "dependency-injector",
     "moviepy>=2.1.2",
