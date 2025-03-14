@@ -7,8 +7,8 @@ from datetime import datetime, timezone, timedelta
 
 from concurrent.futures import ThreadPoolExecutor
 
-from azure.servicebus import ServiceBusMessage
-from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer
+from azure.servicebus import ServiceBusMessage, ServiceBusReceivedMessage
+from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer, ServiceBusReceiver
 
 from ..exceptions import FatalQueueingException, RetryQueueingException
 from .event_messaging_service import EventMessagingService
@@ -185,62 +185,82 @@ class ServiceBusEventMessagingService(EventMessagingService):
                             continue
 
                         self.logger.debug(f"Received {len(messages)} message(s).")
-
-                        for msg in messages:
-                            try:
-                                # Register the message with the renewer to handle lock renewal
-                                renewer.register(receiver, msg, max_lock_renewal_duration=1200)
-
-                                correlation_id = msg.application_properties.get(b"correlationId")
-                                trace_id = msg.application_properties.get(b"traceId")
-
-                                self.logger.info(
-                                    f"Processing message with Correlation ID: {correlation_id} and Trace ID: {trace_id}"
-                                )
-
+                        active_tasks = set()
+                        async with asyncio.TaskGroup() as task_group:
+                            for msg in messages:
                                 # Delegate processing to the provided message_handler coroutine
-                                self.logger.debug("Delegating message processing to the message handler.")
-                                await message_handler(msg)
-                                self.logger.debug("Delegated message processing completed.")
-
-                                # Complete the message to remove it from the queue
-                                await receiver.complete_message(message=msg)
-                                self.logger.info(
-                                    f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} completed."
+                                task = task_group.create_task(
+                                    self.process_message_async(message_handler=message_handler,
+                                                               lock_renewer=renewer, 
+                                                               receiver=receiver, 
+                                                               message=msg,
+                                                               queue_name=queue_name)
                                 )
-
-                            except RetryQueueingException as e:
-                                # Log that the video processing is still ongoing and needs to be requeued
-                                self.logger.warning(f"Requeueing message :: Exception: {e}")
-
-                                # Complete the message to remove it from the queue before rescheduling
-                                await receiver.complete_message(message=msg)
-                                
-                                # Schedule the message to be retried after a 30-second delay
-                                scheduled_time = datetime.now(timezone.utc) + timedelta(seconds=30)
-                                await self.schedule_message(
-                                    queue_name=queue_name,
-                                    body=e.event_message,
-                                    schedule_time_utc=scheduled_time,
-                                    correlation_id=correlation_id
-                                )
-                                # Log that the message has been requeued
-                                self.logger.info("Message requeued successfully.")
-                            except (FatalQueueingException, Exception) as e:
-                                correlation_id = msg.application_properties.get(b"correlationId")
-                                trace_id = msg.application_properties.get(b"traceId")
-                                self.logger.exception(
-                                    f"Error processing message with Correlation ID: {correlation_id} and Trace ID: {trace_id}: {e}")
-                                # Optionally, abandon the message to make it available for reprocessing
-                                await receiver.abandon_message(message=msg)
-                                self.logger.info(
-                                    f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} abandoned."
-                                )
+                                active_tasks.add(task)
 
                 finally:
-                    # Ensure that the renewer is properly closed to release resources
+                    # Wait for all remaining tasks to complete before closing the renewer
+                    if active_tasks:
+                        self.logger.info(f"Waiting for {len(active_tasks)} active message processing tasks to complete...")
+                        await asyncio.gather(*active_tasks)
+                
+                    # Now that all tasks are done, close the renewer                       
                     await renewer.close()
                     self.logger.info("AutoLockRenewer closed.")
         except Exception as e:
             self.logger.exception(f"Failed to process messages from queue '{queue_name}': {e}")
             raise
+
+    async def process_message_async(
+            self, 
+            message_handler: Callable,
+            lock_renewer: AutoLockRenewer, 
+            receiver: ServiceBusReceiver,
+            queue_name: str, 
+            message: ServiceBusReceivedMessage):
+        
+        try:
+            lock_renewer.register(receiver=receiver, renewable=message, max_lock_renewal_duration=1200)
+
+            correlation_id = message.application_properties.get(b"correlationId")
+            trace_id = message.application_properties.get(b"traceId")
+
+            self.logger.info(
+                f"Processing message with Correlation ID: {correlation_id} and Trace ID: {trace_id}"
+            )
+
+            await message_handler(message)
+
+            # Complete the message to remove it from the queue
+            await receiver.complete_message(message=message)
+            self.logger.info(
+                f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} completed."
+            )
+
+        except RetryQueueingException as e:
+            # Log that the video processing is still ongoing and needs to be requeued
+            self.logger.warning(f"Requeueing message :: Exception: {e}")
+
+            # Complete the message to remove it from the queue before rescheduling
+            await receiver.complete_message(message=message)
+            
+            # Schedule the message to be retried after a 30-second delay
+            scheduled_time = datetime.now(timezone.utc) + timedelta(seconds=30)
+            await self.schedule_message(
+                queue_name=queue_name,
+                body=e.event_message,
+                schedule_time_utc=scheduled_time,
+                correlation_id=correlation_id
+            )
+            # Log that the message has been requeued
+            self.logger.info("Message requeued successfully.")
+        except FatalQueueingException or Exception as e:
+            correlation_id = message.application_properties.get(b"correlationId")
+            trace_id = message.application_properties.get(b"traceId")
+            self.logger.exception(
+                f"Error processing message with Correlation ID: {correlation_id} and Trace ID: {trace_id}: {e}")
+            # Optionally, abandon the message to make it available for reprocessing
+            await receiver.abandon_message(message=message)
+            self.logger.info(
+                f"Message with Correlation ID: {correlation_id} and Trace ID: {trace_id} abandoned."
+            )
