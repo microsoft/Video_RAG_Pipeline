@@ -42,7 +42,7 @@ param summarizeVideoContentEnvVars array
 
 // Deploy Chunk Video Content Container App
 module chunkVideoContent './container-app.bicep' = {
-  name: 'chunkVideoContent'
+  name: 'chunkVideoContentContainerApp'
   params: {
     name: 'chunkVideoContent'
     location: location
@@ -62,7 +62,7 @@ module chunkVideoContent './container-app.bicep' = {
 
 // Deploy Index File API Container App
 module indexFileApi './container-app.bicep' = {
-  name: 'indexFileApi'
+  name: 'indexFileApiContainerApp'
   params: {
     name: 'indexFileApi'
     location: location
@@ -82,7 +82,7 @@ module indexFileApi './container-app.bicep' = {
 
 // Deploy Summarize Video Content Container App
 module summarizeVideoContent './container-app.bicep' = {
-  name: 'summarizeVideoContent'
+  name: 'summarizeVideoContentContainerApp'
   params: {
     name: 'summarizeVideoContent'
     location: location
