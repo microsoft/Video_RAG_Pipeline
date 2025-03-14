@@ -5,6 +5,8 @@ import logging
 from typing import Callable
 from datetime import datetime, timezone, timedelta
 
+from concurrent.futures import ThreadPoolExecutor
+
 from azure.servicebus import ServiceBusMessage
 from azure.servicebus.aio import ServiceBusClient, AutoLockRenewer
 
@@ -141,6 +143,16 @@ class ServiceBusEventMessagingService(EventMessagingService):
             self.logger.exception(f"Failed to schedule message to queue '{queue_name}': {e}")
             raise
 
+    async def lock_renewal_failure_handler(self, renewable, error):
+        """
+        Handles lock renewal failures for messages.
+
+        Args:
+            renewable: The message that failed to renew its lock.
+            error: The error that occurred during lock renewal.
+        """
+        self.logger.warning(f"Failed to renew lock for message: {renewable}. Error: {error}")
+
     async def process_messages(
         self,
         queue_name: str,
@@ -157,9 +169,10 @@ class ServiceBusEventMessagingService(EventMessagingService):
             message_handler (Callable): A coroutine function to handle individual messages.
         """
         try: # TODO: Look into consolidating the 3/4 nested try/except blocks into one
+            renewer = AutoLockRenewer(max_lock_renewal_duration=1200, on_lock_renew_failure=self.lock_renewal_failure_handler)  # Handles automatic lock renewal for messages
+
             # Asynchronously create a receiver for the specified queue
             async with self.service_bus_client.get_queue_receiver(queue_name=queue_name) as receiver:
-                renewer = AutoLockRenewer()  # Handles automatic lock renewal for messages
                 self.logger.info(f"Started processing messages from queue '{queue_name}'.")
                 try:
                     while not stop_event.is_set():
@@ -176,7 +189,7 @@ class ServiceBusEventMessagingService(EventMessagingService):
                         for msg in messages:
                             try:
                                 # Register the message with the renewer to handle lock renewal
-                                renewer.register(receiver, msg)
+                                renewer.register(receiver, msg, max_lock_renewal_duration=1200)
 
                                 correlation_id = msg.application_properties.get(b"correlationId")
                                 trace_id = msg.application_properties.get(b"traceId")
@@ -186,7 +199,9 @@ class ServiceBusEventMessagingService(EventMessagingService):
                                 )
 
                                 # Delegate processing to the provided message_handler coroutine
+                                self.logger.debug("Delegating message processing to the message handler.")
                                 await message_handler(msg)
+                                self.logger.debug("Delegated message processing completed.")
 
                                 # Complete the message to remove it from the queue
                                 await receiver.complete_message(message=msg)
@@ -211,7 +226,7 @@ class ServiceBusEventMessagingService(EventMessagingService):
                                 )
                                 # Log that the message has been requeued
                                 self.logger.info("Message requeued successfully.")
-                            except FatalQueueingException or Exception as e:
+                            except (FatalQueueingException, Exception) as e:
                                 correlation_id = msg.application_properties.get(b"correlationId")
                                 trace_id = msg.application_properties.get(b"traceId")
                                 self.logger.exception(

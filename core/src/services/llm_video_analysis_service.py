@@ -1,6 +1,6 @@
 import logging
 
-from openai import OpenAI
+from openai import AsyncAzureOpenAI
 
 from ..exceptions import RetryQueueingException
 from ..models import VideoUploadMetadata, ContentResult, Content, VideoSubjects
@@ -11,12 +11,12 @@ class LLMVideoAnalysisService:
 
     def __init__(
         self,
-        openai_service: OpenAI,
+        openai_service: AsyncAzureOpenAI,
         openai_model_name: str,
     ) -> None:
         self.openai_service = openai_service
         self.openai_model_name = openai_model_name
-
+        
     async def find_video_subjects(
         self,
         content_result: ContentResult,
@@ -57,7 +57,7 @@ class LLMVideoAnalysisService:
             combined_summary = "\n".join(summaries)
 
             # Create a comprehensive summary by sending a request to Azure OpenAI's chat completion endpoint
-            response = self.openai_service.beta.chat.completions.parse(
+            response = await self.openai_service.beta.chat.completions.parse(
                 response_format=VideoSubjects,
                 model=self.openai_model_name,
                 messages=[
@@ -163,7 +163,7 @@ class LLMVideoAnalysisService:
             initial_subjects_json = initial_subjects.model_dump_json(indent=2)
 
             # Ask OpenAI to assess and optionally improve the subject list
-            response = self.openai_service.beta.chat.completions.parse(
+            response = await self.openai_service.beta.chat.completions.parse(
                 response_format=VideoSubjects,
                 model=self.openai_model_name,
                 messages=[
@@ -263,7 +263,7 @@ class LLMVideoAnalysisService:
             combined_summary = "\n".join(summaries)
 
             # Create a comprehensive summary by sending a request to Azure OpenAI's chat completion endpoint
-            response = self.openai_service.chat.completions.create(
+            response = await self.openai_service.chat.completions.create(
                 model=self.openai_model_name,
                 messages=[
                     {
