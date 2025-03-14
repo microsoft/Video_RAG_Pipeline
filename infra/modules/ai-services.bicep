@@ -97,15 +97,6 @@ resource cognitiveServicesSecondaryKeySecret 'Microsoft.KeyVault/vaults/secrets@
   }
 }
 
-// Store the Cognitive Services endpoint in Key Vault
-resource cognitiveServicesEndpointSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  parent: keyVault
-  name: 'cognitive-services-endpoint'
-  properties: {
-    value: cognitiveServicesAccount.properties.endpoint
-  }
-}
-
 // User-assigned managed identity for the deployment script
 resource deploymentScriptIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: 'id-deploymentscript-${resourceToken}'
