@@ -197,27 +197,17 @@ module aiServices './modules/ai-services.bicep' = {
     containerRegistryResourceId: coreInfra.outputs.containerRegistryResourceId
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     keyVaultResourceId: coreInfra.outputs.keyVaultResourceId
-<<<<<<< Updated upstream
-=======
     keyVaultName: coreInfra.outputs.keyVaultName
     cognitiveServicesAccountName: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     gpt4oDeploymentName: 'gpt-4o'
     gpt4oModelName: 'gpt-4o'
     gpt4oModelVersion: '2024-05-13'
->>>>>>> Stashed changes
   }
 }
 
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = coreInfra.outputs.containerRegistryLoginServer
 output AZURE_KEY_VAULT_ENDPOINT string = coreInfra.outputs.keyVaultUri
 output AZURE_KEY_VAULT_NAME string = coreInfra.outputs.keyVaultName
-<<<<<<< Updated upstream
-output AZURE_FOUNDRY_HUB_NAME string = foundryHub.outputs.name
-output AZURE_FOUNDRY_HUB_ID string = foundryHub.outputs.resourceId
-output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = containerApps.outputs.chunkVideoContentResourceId
-output AZURE_RESOURCE_INDEX_FILE_API_ID string = containerApps.outputs.indexFileApiResourceId
-output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = containerApps.outputs.summarizeVideoContentResourceId
-=======
 output AZURE_FOUNDRY_HUB_NAME string = aiServices.outputs.name
 output AZURE_FOUNDRY_HUB_ID string = aiServices.outputs.resourceId
 output AZURE_COGNITIVE_SERVICES_NAME string = aiServices.outputs.cognitiveServicesAccountName
@@ -227,4 +217,3 @@ output AZURE_GPT4O_DEPLOYMENT_NAME string = aiServices.outputs.gpt4oDeploymentNa
 output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = chunkVideoContentApp.outputs.resourceId
 output AZURE_RESOURCE_INDEX_FILE_API_ID string = indexFileApiApp.outputs.resourceId
 output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = summarizeVideoContentApp.outputs.resourceId
->>>>>>> Stashed changes
