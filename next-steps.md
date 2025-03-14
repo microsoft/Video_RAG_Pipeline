@@ -14,17 +14,9 @@ You need to run ```uv pip lock > requirements.txt``` on each project before runn
 
 ### Azure AI Foundry
 
-#### Azure AI Hub
-
-A hub resource needs to be created with a connection to an Azure AI Service in a supported region. The current suggested region is Sweden Central.
-
 #### Azure AI Project
 
 An Azure AI Project needs to be created in the hub with the connected resources.
-
-#### Azure AI Services
-
-A connected AI Service needs to be made available for Content Understanding services to be made available.
 
 ##### Content Understanding
 
@@ -62,11 +54,6 @@ data.json:
   }
 }
 ```
-
-#### Azure Open AI Services
-
-An Azure Open AI service needs to be made available with an LLM model deployment.
-The current suggested model is gpt-4o
 
 ### Azure Storage Account
 
