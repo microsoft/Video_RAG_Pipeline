@@ -82,14 +82,8 @@
 		"index_blob_queue": {
 			"description": "Name of the queue for indexing blobs."
 		},
-		"content_understanding_endpoint": {
-			"description": "URL endpoint for the content understanding service."
-		},
 		"mp4_output_path": {
 			"description": "Filesystem path where MP4 output files will be stored."
-		},
-		"storage_container_name": {
-			"description": "Name of the blob container in Azure Storage."
 		},
 		"logging_level": {
 			"description": "Optional logging level (e.g., DEBUG, INFO). Defaults to ERROR."
