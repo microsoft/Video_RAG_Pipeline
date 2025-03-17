@@ -232,113 +232,92 @@ class LLMVideoAnalysisService:
         video_upload_metadata: VideoUploadMetadata,
     ) -> str:
         """
-        Creates a summary of the video content using Azure OpenAI.
+        Generates a structured, product-oriented documentation-like narrative from segmented video content using Azure OpenAI.
+
+        The resulting document should reflect how a product owner, sales person, or internal documentation writer would describe
+        the product or feature — using clear structure, terminology, steps, flows, use cases, benefits, and guidance — without
+        ever referring to videos, segments, transcripts, or technical analysis.
 
         Args:
-            subject (str): The main subject or topic of the video segment.
-            contents (list[Content]): The result from content understanding indicating video analysis.
-            video_upload_metadata (VideoUploadMetadata): The metadata of the uploaded video.
+            subject (str): The main subject or topic presented in the video (e.g., a product feature, onboarding flow, use case).
+            contents (list[Content]): The analyzed video splits, containing descriptions, UI context, actions, and spoken content.
+            video_upload_metadata (VideoUploadMetadata): Metadata of the uploaded video.
 
         Returns:
-            str: The generated summary of the video content.
-
-        Raises:
-            Exception: Propagates any exception encountered during the summary creation process.
+            str: A natural, highly structured product-oriented document written in a clear and narrative tone.
         """
         try:
-            # Initialize a list to efficiently build the content string
-            summaries = [
+            # Compile all structured content blocks into one large stitched body
+            content_blocks = [
                 (
-                        f"###{index}\n\n#### Description\n\n{content.fields.description}"
-                        + f"\n\n#### Sentiment\n\n{content.fields.sentiment}"
-                        + f"\n\n#### Actions\n\n{content.fields.actions}"
-                        + f"\n\n#### On screen text\n\n{content.fields.onScreenText}"
-                        + f"\n\n#### Key takeaways\n\n{content.fields.keyTakeaways}"
-                        + f"\n\n#### Spoken keywords\n\n{content.fields.spokenKeywords}"
-                        + f"\n\n#### Visual context\n\n{content.fields.visualContext}"
-                        + f"\n\n#### Tone analysis\n\n{content.fields.toneAnalysis}"
+                    f"### Content Block {index + 1}\n"
+                    f"- **Description:** {c.fields.description}\n"
+                    f"- **On-screen Text:** {c.fields.onScreenText}\n"
+                    f"- **Actions:** {c.fields.actions}\n"
+                    f"- **Visual Context:** {c.fields.visualContext}\n"
+                    f"- **Key Takeaways:** {c.fields.keyTakeaways}\n"
+                    f"- **Spoken Keywords:** {c.fields.spokenKeywords}"
                 )
-                for index, content in enumerate(contents)
+                for index, c in enumerate(contents)
             ]
-            combined_summary = "\n".join(summaries)
+            stitched_context = "\n\n".join(content_blocks)
 
-            # Create a comprehensive summary by sending a request to Azure OpenAI's chat completion endpoint
+            # Send a new request to OpenAI with a product-documentation-oriented role prompt
             response = await self.openai_service.chat.completions.create(
                 model=self.openai_model_name,
                 messages=[
                     {
                         "role": "system",
                         "content": """
-                            You are a skilled content writer and analyst specialized in creating highly descriptive, fluid, and richly detailed summaries of complex material.
-                            Your task is to write a cohesive and insightful narrative that reflects the full depth of the presented content.
-                            The final text should read like a professional and well-structured summary, not like a transcript or a technical report.
-                            Your writing must integrate all important aspects such as spoken dialogue, on-screen text, visuals, user interactions, feature explanations, and demonstrations — but in a natural and flowing way, avoiding technical listing or dry narration.
-                            Focus on descriptive storytelling, not analysis. The goal is for the reader to fully understand what was communicated, explained, and demonstrated, in a way that feels intuitive, continuous, and complete — without ever mentioning or implying that the text comes from a video.
-                        """
-                    },
-                    {
-                        "role": "system",
-                        "content": """
-                            ### Output Style & Structure Guide:
+                            You are a professional documentation writer, product owner, or product marketer.
 
-                            1. **Opening Context (1–2 paragraphs):**
-                               - Start with a natural and engaging introduction to what is being presented.
-                               - Set the context: What is the overarching topic or concept being addressed? What is the focus or goal of the content?
+                            Your task is to transform structured product content into a **clear, cohesive, and professionally written product documentation or internal guide**.
 
-                            2. **Descriptive Flow (Main Body):**
-                               - Progressively describe the content as it unfolds.
-                               - Use phrases such as: "In the beginning...", "Next, the presentation focuses on...", "Following that...", "Later in the content...", "A detailed walkthrough is provided of...", "Particular emphasis is placed on..."
-                               - Integrate spoken content, on-screen elements, interface walkthroughs, demonstrations, and key highlights seamlessly in the narrative.
+                            The tone should be informative, product-driven, and structured — like an internal product feature spec, onboarding documentation, sales enablement doc, or product walkthrough.
 
-                            3. **Feature Highlights (when applicable):**
-                               - Describe how specific features, workflows, or use cases are presented.
-                               - Mention visual aspects like dashboards, buttons, flows, charts, etc., as if you are describing what the viewer sees.
+                            The document must sound like it was written directly by a product manager or sales expert who is describing the product and how it works.
 
-                            4. **Smooth Transitions:**
-                               - Ensure paragraphs connect smoothly.
-                               - Avoid abrupt shifts or segmented language (no mention of "section X" or timestamps).
+                            Do not mention "video", "segments", "content blocks", or anything about how this was generated.
+                            Focus on producing a **natural, structured, informative narrative** that provides:
+                            - Descriptions of product concepts or flows
+                            - Step-by-step walkthroughs if applicable
+                            - Key features and benefits
+                            - UI details and interactions
+                            - Clear headings and natural transitions
 
-                            5. **Closing Remarks (1 paragraph):**
-                               - Conclude naturally, summarizing what was demonstrated or the final impression left by the content.
-                               - Reinforce the value or key idea of the presentation without repeating everything.
-
-                            ### Writing Style:
-                            - Use a natural, clear, and professional tone — warm and informative, not robotic or technical.
-                            - Avoid repeating phrases.
-                            - Never say "The video shows..." or "In the video split...".
-                            - Imagine you're describing it for a company’s internal documentation or product showcase — make it clean, flowing, and complete.
+                            Use proper structure, subheadings, and smooth transitions. Maintain clarity and readability throughout.
+                            Use actual language and terminology presented in the content.
                         """
                     },
                     {
                         "role": "user",
                         "content": f"""
-                            Please create a comprehensive, cohesive, and richly detailed description of the full content presented.
-
+                            Please write a product-oriented documentation piece based on the content provided below.
+                        
+                            ## Main Subject
+                            {subject}
+                        
+                            ## Context to work from:
+                            {stitched_context}
+                        
                             ## Instructions
-                            - Use a natural, narrative tone as if you're describing what is being presented to someone who did not see it.
-                            - Ensure the content flows chronologically and clearly, with smooth transitions between sections.
-                            - Do not mention "segments", "video", or any references to video processing or transcription.
-                            - Use temporal context smoothly: phrases like "In the beginning", "Then", "After that", "Later on", "Toward the end" help guide flow.
-                            - Incorporate all key aspects like spoken dialogue, demonstrations, product features, UI interactions, on-screen text, and context — but blend them naturally into the description.
-                            - Use the provided subject/topic as an anchor to guide your structure and tone.
-                            - Do not explain how the description was generated; the reader should feel as if it was written by someone who watched and summarized the content directly.
-
-                            ## The main subject of the content
-                            **{subject}**
-
-                            ## The complete content you need to synthesize
-                            {combined_summary}
+                            - Write clearly and naturally.
+                            - Structure the document with headings, subheadings, and paragraph flows.
+                            - Describe features, flows, and interactions as if explaining to a colleague or customer.
+                            - If the content suggests steps, explain the steps as bullet points or paragraphs.
+                            - Use actual phrases or feature names found in the original content.
+                            - Do not reference content blocks or the source format.
+                            - Ensure it reads like a naturally authored internal documentation piece or sales deck.
                         """
                     }
                 ]
             )
 
-            # Extract and return the generated summary from the response
             return response.choices[0].message.content
+
         except Exception:
-            # Raise a retrial exception if the summary generation fails
-            logger.warning("Error creating video description")
+            logger.warning("Error creating video documentation")
             raise RetryQueueingException(
-                "Error creating video description",
+                "Error creating video documentation",
                 video_upload_metadata.model_dump_json()
             )
