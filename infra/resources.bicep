@@ -18,8 +18,6 @@ param summarizeVideoContentDefinition object
 param principalId string
 
 // Parameters added for service bus secrets
-@description('Service Bus Namespace')
-param serviceBusNamespace string = ''
 @secure()
 @description('Service Bus API Key')
 param serviceBusApiKey string = ''
@@ -75,11 +73,26 @@ module coreInfra './modules/core-infrastructure.bicep' = {
   }
 }
 
+// Deploy Service Bus infrastructure
+module serviceBusInfra './modules/service-bus.bicep' = {
+  name: 'service-bus-infrastructure'
+  params: {
+    location: location
+    tags: tags
+    managedIdentityPrincipalIds: identities.outputs.managedIdentityPrincipalIds
+    resourceToken: resourceToken
+    abbrs: abbrs
+  }
+}
+
 // Define secrets by group
 var serviceBusSecrets = [
-  { name: 'service-bus-namespace', value: !empty(serviceBusNamespace) ? serviceBusNamespace : 'placeholder-value' }
+  { name: 'service-bus-namespace', value: serviceBusInfra.outputs.serviceBusEndpoint }
   { name: 'service-bus-api-key', value: !empty(serviceBusApiKey) ? serviceBusApiKey : 'placeholder-value' }
   { name: 'service-bus-api-key-name', value: !empty(serviceBusApiKeyName) ? serviceBusApiKeyName : 'placeholder-value' }
+  { name: 'index-file-queue', value: serviceBusInfra.outputs.indexFileQueueName }
+  { name: 'finalize-content-queue', value: serviceBusInfra.outputs.finalizeContentQueueName }
+  { name: 'video-summary-queue', value: serviceBusInfra.outputs.videoSummaryQueueName }
 ]
 
 var contentSecrets = [
@@ -97,6 +110,8 @@ var openAISecrets = [
 
 var storageSecrets = [
   { name: 'storage-account-api-key', value: !empty(storageAccountApiKey) ? storageAccountApiKey : 'placeholder-value' }
+  { name: 'storage-account-name', value: coreInfra.outputs.storageAccountName }
+  { name: 'storage-container-name', value: coreInfra.outputs.blobContainerName }
 ]
 
 // Combine secrets by service
@@ -109,9 +124,13 @@ var chunkVideoContentEnvVars = [
   { name: 'SERVICE_BUS_NAMESPACE', secretRef: 'service-bus-namespace' }
   { name: 'SERVICE_BUS_API_KEY', secretRef: 'service-bus-api-key' }
   { name: 'SERVICE_BUS_API_KEY_NAME', secretRef: 'service-bus-api-key-name' }
+  { name: 'INDEX_FILE_QUEUE', secretRef: 'index-file-queue' }
+  { name: 'FINALIZE_CONTENT_QUEUE', secretRef: 'finalize-content-queue' }
   { name: 'CONTENT_UNDERSTANDING_ENDPOINT', secretRef: 'content-understanding-endpoint' }
   { name: 'CONTENT_UNDERSTANDING_KEY', secretRef: 'content-understanding-key' }
   { name: 'CONTENT_UNDERSTANDING_API_VERSION', secretRef: 'content-understanding-api-versio' }
+  { name: 'STORAGE_ACCOUNT_NAME', secretRef: 'storage-account-name' }
+  { name: 'STORAGE_CONTAINER_NAME', secretRef: 'storage-container-name' }
   { name: 'STORAGE_ACCOUNT_API_KEY', secretRef: 'storage-account-api-key' }
 ]
 
@@ -119,12 +138,15 @@ var indexFileApiEnvVars = [
   { name: 'SERVICE_BUS_NAMESPACE', secretRef: 'service-bus-namespace' }
   { name: 'SERVICE_BUS_API_KEY', secretRef: 'service-bus-api-key' }
   { name: 'SERVICE_BUS_API_KEY_NAME', secretRef: 'service-bus-api-key-name' }
+  { name: 'INDEX_FILE_QUEUE', secretRef: 'index-file-queue' }
 ]
 
 var summarizeVideoContentEnvVars = [
   { name: 'SERVICE_BUS_NAMESPACE', secretRef: 'service-bus-namespace' }
   { name: 'SERVICE_BUS_API_KEY', secretRef: 'service-bus-api-key' }
   { name: 'SERVICE_BUS_API_KEY_NAME', secretRef: 'service-bus-api-key-name' }
+  { name: 'FINALIZE_CONTENT_QUEUE', secretRef: 'finalize-content-queue' }
+  { name: 'VIDEO_SUMMARY_QUEUE', secretRef: 'video-summary-queue' }
   { name: 'AZURE_OPENAI_ENDPOINT', secretRef: 'azure-openai-endpoint' }
   { name: 'AZURE_OPENAI_KEY', secretRef: 'azure-openai-key' }
   { name: 'AZURE_OPENAI_API_VERSION', secretRef: 'azure-openai-api-version' }
@@ -132,6 +154,8 @@ var summarizeVideoContentEnvVars = [
   { name: 'CONTENT_UNDERSTANDING_ENDPOINT', secretRef: 'content-understanding-endpoint' }
   { name: 'CONTENT_UNDERSTANDING_KEY', secretRef: 'content-understanding-key' }
   { name: 'CONTENT_UNDERSTANDING_API_VERSION', secretRef: 'content-understanding-api-versio' }
+  { name: 'STORAGE_ACCOUNT_NAME', secretRef: 'storage-account-name' }
+  { name: 'STORAGE_CONTAINER_NAME', secretRef: 'storage-container-name' }
   { name: 'STORAGE_ACCOUNT_API_KEY', secretRef: 'storage-account-api-key' }
 ]
 
@@ -150,6 +174,9 @@ module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
     chunkVideoContentIdentityClientId: identities.outputs.chunkVideoContentIdentityClientId
     chunkVideoContentSecrets: chunkVideoContentSecrets
     chunkVideoContentEnvVars: chunkVideoContentEnvVars
+    serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
+    storageAccountName: coreInfra.outputs.storageAccountName
+    blobContainerName: coreInfra.outputs.blobContainerName
   }
 }
 
@@ -167,6 +194,7 @@ module indexFileApiApp './app-modules/index-file-api.bicep' = {
     indexFileApiIdentityClientId: identities.outputs.indexFileApiIdentityClientId
     indexFileApiSecrets: indexFileApiSecrets
     indexFileApiEnvVars: indexFileApiEnvVars
+    serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
   }
 }
 
@@ -184,6 +212,9 @@ module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = 
     summarizeVideoContentIdentityClientId: identities.outputs.summarizeVideoContentIdentityClientId
     summarizeVideoContentSecrets: summarizeVideoContentSecrets
     summarizeVideoContentEnvVars: summarizeVideoContentEnvVars
+    serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
+    storageAccountName: coreInfra.outputs.storageAccountName
+    blobContainerName: coreInfra.outputs.blobContainerName
   }
 }
 
@@ -217,3 +248,10 @@ output AZURE_GPT4O_DEPLOYMENT_NAME string = aiServices.outputs.gpt4oDeploymentNa
 output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = chunkVideoContentApp.outputs.resourceId
 output AZURE_RESOURCE_INDEX_FILE_API_ID string = indexFileApiApp.outputs.resourceId
 output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = summarizeVideoContentApp.outputs.resourceId
+output AZURE_SERVICE_BUS_NAMESPACE string = serviceBusInfra.outputs.serviceBusNamespaceName
+output AZURE_SERVICE_BUS_ENDPOINT string = serviceBusInfra.outputs.serviceBusEndpoint
+output AZURE_INDEX_FILE_QUEUE string = serviceBusInfra.outputs.indexFileQueueName
+output AZURE_FINALIZE_CONTENT_QUEUE string = serviceBusInfra.outputs.finalizeContentQueueName
+output AZURE_VIDEO_SUMMARY_QUEUE string = serviceBusInfra.outputs.videoSummaryQueueName
+output AZURE_STORAGE_ACCOUNT_NAME string = coreInfra.outputs.storageAccountName
+output AZURE_STORAGE_CONTAINER_NAME string = coreInfra.outputs.blobContainerName

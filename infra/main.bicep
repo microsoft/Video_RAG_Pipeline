@@ -93,7 +93,6 @@ module resources 'resources.bicep' = {
     summarizeVideoContentExists: summarizeVideoContentExists
     summarizeVideoContentDefinition: summarizeVideoContentDefinition
     // Pass the parameters to resources.bicep
-    serviceBusNamespace: serviceBusNamespace
     serviceBusApiKey: serviceBusApiKey
     serviceBusApiKeyName: serviceBusApiKeyName
     contentUnderstandingEndpoint: contentUnderstandingEndpoint
