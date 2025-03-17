@@ -42,12 +42,17 @@ async def create_service_bus_client(endpoint: str, credential: any, logger: any)
         client = None  # Ensure the client is reset
 
 # we need to extract a token for the AzureOpenAI client if we're going to connect via Managed Identity
-async def create_azure_ad_token():
-    credential = DefaultAzureCredential()
-    token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
-    token = await token_provider()
-    yield token
-    await credential.close()
+async def create_azure_ad_token(openai_auth_type: str):
+    if openai_auth_type == "managed_identity":
+        logger.debug("Creating Azure AD token provider for Managed Identity")
+        credential = DefaultAzureCredential()
+        token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
+        token = await token_provider()
+        yield token
+        await credential.close()
+    else:
+        logger.debug("No Azure AD token provider needed for API key authentication")
+        yield None
 
 async def create_content_understanding_http_client_session(key: str, logger: Optional[any]):
     headers = {

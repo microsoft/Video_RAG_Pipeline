@@ -67,7 +67,8 @@ class Container(containers.DeclarativeContainer):
     )
 
     azure_ad_token_resource = providers.Resource(
-        create_azure_ad_token
+        create_azure_ad_token,
+        config.azure_openai_auth_type
     )
 
     openai_service_key_auth = providers.Singleton(
