@@ -132,16 +132,16 @@ class MessageHandler:
                     endTimeMs=subject_content_set.endTimeMs
                 )
 
-            # Send the summarized metadata to the designated queue
-            await self.event_messaging_service.send_message(
-                queue_name=self.video_summary_queue_name,
-                body=processing_result.model_dump_json(),
-                correlation_id=correlation_id,
-                trace_id=trace_id
-            )
+                # Send the summarized metadata to the designated queue
+                await self.event_messaging_service.send_message(
+                    queue_name=self.video_summary_queue_name,
+                    body=processing_result.model_dump_json(),
+                    correlation_id=correlation_id,
+                    trace_id=trace_id
+                )
 
-            # Log that the summarized message has been sent successfully
-            logger.info(f"Processing result event produced successfully :: correlation_id={correlation_id}")
+                # Log that the summarized message has been sent successfully
+                logger.info(f"Processing result event produced successfully :: correlation_id={correlation_id}")
 
             if video_upload_metadata.isUploaded:
                 file_name: str = get_file_name_from_url(video_upload_metadata.fileUrl)
@@ -178,6 +178,14 @@ class MessageHandler:
             )
 
             return content_result
+        except aiohttp.ClientResponseError as http_err:
+            if http_err.status == 404:
+                raise FatalQueueingException("Video not found in Video Extraction Service")
+            else:
+                raise RetryQueueingException(
+                    "Error getting video description from Video Extraction Service",
+                    video_upload_metadata.model_dump_json()
+                )
         except Exception as e:
             # Raise
             raise RetryQueueingException(
