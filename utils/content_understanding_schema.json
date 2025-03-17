@@ -1,0 +1,54 @@
+{
+  "description": "Structured video content extraction schema designed to capture highly detailed information from SaaS product presentation videos. This schema integrates insights from speech transcription, on-screen text (OCR), UI visual context, user actions, and tone analysis to provide a comprehensive representation of each video split. The goal is to extract all relevant information that enables the reconstruction of a natural, structured, and product-oriented documentation output—without referring to the source as video. Each field captures a different dimension of the content, allowing downstream processes to synthesize clear product guides, walkthroughs, and sales documentation based on the extracted data.",
+  "scenario": "videoShot",
+  "config": {
+    "enableFace": false,
+    "returnDetails": true,
+    "disableContentFiltering": true
+  },
+  "fieldSchema": {
+    "fields": {
+      "description": {
+        "type": "string",
+        "description": "Provide a comprehensive, high-fidelity transcription of the video split that integrates spoken dialogue, on-screen text (OCR), visual context, gestures, and interactions. Capture all explicit and implicit information communicated through speech, visual demonstrations, UI walkthroughs, and user behavior. Include contextual descriptions of what is happening in the frames, such as actions, transitions, visual changes, and key product elements being shown. Aim for maximum clarity, completeness, and narrative coherence."
+      },
+      "subject": {
+        "type": "string",
+        "description": "Identify the main topic or core subject being presented or discussed in this split. This may include specific product features, functionality, benefits, technical concepts, use cases, or key value propositions. Base your analysis on both spoken content and on-screen visuals, using terminology and language as presented in the frames or dialogue."
+      },
+      "sentiment": {
+        "type": "string",
+        "method": "classify",
+        "enum": [
+          "Positive",
+          "Neutral",
+          "Negative"
+        ]
+      },
+      "actions": {
+        "type": "string",
+        "description": "Detect and describe all relevant actions performed by individuals or demonstrated in the video split. This includes interactions with user interfaces (e.g., clicking, scrolling, selecting options), body language (e.g., pointing, gesturing), product walkthroughs, feature demonstrations, tool manipulations, and any frame-based transitions. Use precise language to describe what each action refers to and how it contributes to presenting the content."
+      },
+      "onScreenText": {
+        "type": "string",
+        "description": "Extract and transcribe all visible text elements from the video frames using frame-by-frame OCR. This includes UI labels, menus, tooltips, dialog boxes, headers, annotations, feature names, error messages, and callouts. Ensure maximum accuracy and completeness. If text appears as part of a visual workflow, capture the context in which it appears (e.g., 'Button label in top-right corner: Create Campaign')."
+      },
+      "keyTakeaways": {
+        "type": "string",
+        "description": "Summarize the most critical concepts, insights, and value propositions demonstrated in this video split. Highlight product differentiators, benefits, user advantages, process improvements, or any compelling arguments being made. Base this summary on both spoken content and visual cues. Focus on what the viewer is expected to remember or act on after this section."
+      },
+      "spokenKeywords": {
+        "type": "string",
+        "description": "List the most important, relevant, and frequently spoken keywords or phrases in this split. Emphasize technical terms, product names, feature labels, verbs related to actions, customer pain points, and solution benefits. Capture recurring phrases that signal the focus of the presentation."
+      },
+      "visualContext": {
+        "type": "string",
+        "description": "Describe in detail the visual elements shown on screen, including UI screens, feature layouts, dashboard elements, charts, flow diagrams, tool configurations, or animation sequences. Explain how these visuals relate to the spoken content. Mention screen transitions, modal windows, highlighted interface sections, or anything that helps the viewer understand the software being demonstrated."
+      },
+      "toneAnalysis": {
+        "type": "string",
+        "description": "Analyze and describe the speaker’s tone, delivery style, and communication intent. Indicate whether the speaker is enthusiastic, persuasive, formal, instructive, conversational, urgent, casual, etc. Capture shifts in tone across the split if they occur (e.g., intro being energetic, followed by an instructive walkthrough). Include any non-verbal indicators that reinforce the tone (e.g., smiling while demonstrating, excited gestures)."
+      }
+    }
+  }
+}

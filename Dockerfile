@@ -28,4 +28,4 @@ COPY --from=build /build/dist /app/dist
 # Install the wheel and remove the wheel files to reduce image size
 RUN pip install --no-cache-dir dist/*.whl && rm -rf dist
 
-CMD ${PROJECTNAME}
+CMD python -m ${PROJECTNAME}.src.app

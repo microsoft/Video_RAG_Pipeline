@@ -26,66 +26,67 @@
 				"ms-windows-ai-studio.windows-ai-studio",
 				"MS-CST-E.vscode-devskim",
 				"ms-python.vscode-python-envs",
-				"GitHub.copilot-chat"
+				"GitHub.copilot-chat",
+				"ms-azuretools.vscode-bicep"
 			]
 		}
 	},
 	"secrets": {
-		"service_bus_namespace": {
+		"SERVICE_BUS_NAMESPACE": {
 			"description": "Fully qualified namespace for Azure Service Bus."
 		},
-		"finalize_content_queue": {
+		"FINALIZE_CONTENT_QUEUE": {
 			"description": "Name of the queue for finalizing content processing."
 		},
-		"video_summary_queue": {
+		"VIDEO_SUMMARY_QUEUE": {
 			"description": "Name of the queue for video summary tasks."
 		},
-		"cognitive_services_endpoint": {
+		"COGNITIVE_SERVICES_ENDPOINT": {
 			"description": "Endpoint URL for Azure Cognitive Services API."
 		},
-		"azure_openai_endpoint": {
+		"AZURE_OPENAI_ENDPOINT": {
 			"description": "Endpoint URL for Azure OpenAI Service."
 		},
-		"azure_openai_api_version": {
+		"AZURE_OPENAI_API_VERSION": {
 			"description": "API version for Azure OpenAI Service."
 		},
-		"azure_openai_model_name": {
+		"AZURE_OPENAI_MODEL_NAME": {
 			"description": "Name of the model used in Azure OpenAI Service."
 		},
-		"content_understanding_endpoint": {
+		"CONTENT_UNDERSTANDING_ENDPOINT": {
 			"description": "Endpoint URL for the Content Understanding API."
 		},
-		"content_understanding_api_version": {
+		"CONTENT_UNDERSTANDING_API_VERSION": {
 			"description": "API version for the Content Understanding API."
 		},
-		"content_understanding_key": {
+		"CONTENT_UNDERSTANDING_KEY": {
 			"description": "Subscription key for authenticating with the Content Understanding API."
 		},
-		"video_analyzer_name": {
+		"VIDEO_ANALYZER_NAME": {
 			"description": "Name of the video analyzer used for processing videos."
 		},
-		"storage_account_name": {
+		"STORAGE_ACCOUNT_NAME": {
 			"description": "Azure Storage account name where blobs are stored."
 		},
-		"storage_container_name": {
+		"STORAGE_CONTAINER_NAME": {
 			"description": "Name of the container within the Azure Storage account."
 		},
-		"index_file_queue": {
+		"INDEX_FILE_QUEUE": {
 			"description": "Name of the queue for index files."
 		},
-		"host": {
+		"HOST": {
 			"description": "Host address for the API server. Defaults to 0.0.0.0."
 		},
-		"port": {
+		"PORT": {
 			"description": "Port number for the API server. Defaults to 8000."
 		},
-		"index_blob_queue": {
+		"INDEX_BLOB_QUEUE": {
 			"description": "Name of the queue for indexing blobs."
 		},
-		"mp4_output_path": {
+		"MP4_OUTPUT_PATH": {
 			"description": "Filesystem path where MP4 output files will be stored."
 		},
-		"logging_level": {
+		"LOGGING_LEVEL": {
 			"description": "Optional logging level (e.g., DEBUG, INFO). Defaults to ERROR."
 		}
 	}

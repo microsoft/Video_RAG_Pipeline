@@ -2,16 +2,25 @@
 name = "video-indexer"
 version = "0.1.0"
 requires-python = ">=3.10"
-dependencies = [
+dependencies = []
+
+[dependency-groups]
+test = [
+    "pytest>=8.3.5",
+    "pytest-timeout",
+    "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+]
+
+[tool.uv]
+package = true
+dev-dependencies = [
+    "core",
     "index_file_api",
     "summarize_video_content",
     "chunk_video_content",
 ]
-
-[project.scripts]
-index_file_api = "index_file_api:app.main"
-summarize_video_content = "summarize_video_content:app.main"
-chunk_video_content = "chunk_video_content:app.main"
 
 [tool.uv.sources]
 core = { workspace = true }
@@ -37,4 +46,41 @@ packages = [
     "index_file_api",
     "summarize_video_content",
     "chunk_video_content",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = [
+    "core/tests",
+    "index_file_api/tests",
+    "summarize_video_content/tests",
+    "chunk_video_content/tests",
+]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+pythonpath = [
+    ".",
+    "core/src",
+    "index_file_api/src",
+    "summarize_video_content/src",
+    "chunk_video_content/src",
+    
+]
+markers = [
+    "asyncio: mark a test as an asyncio test",
+    "unit: mark test as a unit test",
+    "integration: mark test as an integration test"
+]
+log_cli = true
+log_cli_level = "INFO"
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
 ]
