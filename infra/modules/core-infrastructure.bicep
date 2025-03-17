@@ -10,6 +10,9 @@ param managedIdentityPrincipalIds array = []
 @description('ID of the user or app to assign access policies for Key Vault')
 param principalId string
 
+@description('Name of the blob container to create in the storage account')
+param blobContainerName string = 'videos'
+
 var abbrs = loadJsonContent('../abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 
@@ -84,6 +87,34 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
   }
 }
 
+// Deploy Storage Account
+module storageAccount 'br/public:avm/res/storage/storage-account:0.6.0' = {
+  name: 'storage'
+  params: {
+    name: '${abbrs.storageStorageAccounts}${resourceToken}'
+    location: location
+    tags: tags
+    kind: 'StorageV2'
+    skuName: 'Standard_LRS'
+    publicNetworkAccess: 'Enabled'
+    allowBlobPublicAccess: false
+    defaultToOAuthAuthentication: true
+    roleAssignments: [for principalId in managedIdentityPrincipalIds: {
+      principalId: principalId
+      principalType: 'ServicePrincipal'
+      roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe') // Storage Blob Data Contributor
+    }]
+  }
+}
+
+// Create Blob Container in Storage Account
+resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  name: '${abbrs.storageStorageAccounts}${resourceToken}/default/${blobContainerName}'
+  properties: {
+    publicAccess: 'None'
+  }
+}
+
 output logAnalyticsWorkspaceResourceId string = monitoring.outputs.logAnalyticsWorkspaceResourceId
 output applicationInsightsResourceId string = monitoring.outputs.applicationInsightsResourceId
 output applicationInsightsConnectionString string = monitoring.outputs.applicationInsightsConnectionString
@@ -93,3 +124,7 @@ output containerAppsEnvironmentResourceId string = containerAppsEnvironment.outp
 output keyVaultResourceId string = keyVault.outputs.resourceId
 output keyVaultUri string = keyVault.outputs.uri
 output keyVaultName string = keyVault.outputs.name
+output storageAccountResourceId string = storageAccount.outputs.resourceId
+output storageAccountName string = storageAccount.outputs.name
+output blobContainerName string = blobContainerName
+output blobEndpoint string = storageAccount.outputs.primaryBlobEndpoint

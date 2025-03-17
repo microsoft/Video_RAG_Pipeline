@@ -55,22 +55,6 @@ data.json:
 }
 ```
 
-### Azure Storage Account
-
-An Azure Storage Blob account should be created with default configurations.
-A container needs to then be created to act as ephemeral storage for the applications.
-
-### Azure Service Bus
-
-An Azure Service Bus instance needs to be created with 3 different queues.
-
-#### Index Blob Event Queue
-
-#### Upload File Event Queue
-
-#### Video Summarized Event Queue
-
-
 ## Next Steps
 
 ### Provision infrastructure and deploy application code
