@@ -1,5 +1,6 @@
 import uuid
 import logging
+import aiohttp
 
 from azure.servicebus import ServiceBusMessage
 
@@ -84,7 +85,8 @@ class MessageHandler:
 
         if content_result.status == "Succeeded":
             # Check if there are any warnings in the content understanding result
-            if content_result.result.warnings and len(content_result.result.warnings) > 0 and len(content_result.result.contents) == 0 and len(content_result.result.contents[0].fields) == 0:
+            if content_result.result.warnings and len(content_result.result.warnings) > 0:
+                logger.warning(f"Content Understanding output has warnings: {content_result.result.warnings} :: correlation_id={correlation_id}")
                 # Raise a fatal exception if there are warnings in the content understanding result
                 if len(content_result.result.contents) == 0 or not content_result.result.contents[0].fields:
                     raise FatalQueueingException(f"Content Understanding has fatal warnings :: correlation_id={correlation_id}")
