@@ -250,7 +250,8 @@ class ServiceBusEventMessagingService(EventMessagingService):
                 queue_name=queue_name,
                 body=e.event_message,
                 schedule_time_utc=scheduled_time,
-                correlation_id=correlation_id
+                correlation_id=correlation_id,
+                trace_id=trace_id
             )
             # Log that the message has been requeued
             self.logger.info("Message requeued successfully.")

@@ -69,8 +69,8 @@ class MessageHandler:
 
         # Access the message body appropriately
         message_content: str = str(message)
-        correlation_id: uuid.UUID = message.application_properties.get("correlationId", None)
-        trace_id: uuid.UUID = message.application_properties.get("traceId", None)
+        correlation_id: uuid.UUID = message.application_properties.get(b"correlationId")
+        trace_id: uuid.UUID = message.application_properties.get(b"traceId")
 
         logger.debug(f"Analysing received message :: correlation_id={correlation_id}")
 
