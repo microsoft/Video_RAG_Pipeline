@@ -27,7 +27,8 @@ Index File API serves as the entry point for the Video RAG Pipeline. It exposes 
 - `allowed_mime_types`: File extensions that are supported by this process (default: gif, mp4)
 
 **Execution:**
-- Development: `uv run index_file_api --env-file .env`
+- Development: `uv run python -m index_file_api.src.app --env-file .env`
+- Test: `uv sync --group test && uv run pytest index_file_api`
 - Docker:  
   Build: `docker build -t index_file_api . --build-arg PROJECTPATH=index_file_api`
 
@@ -50,7 +51,8 @@ The chunk_video_content service efficiently handles video ingestion and processi
 - `logging_level`: Diagnostic logging level.
 
 **Execution:**
-- Development: `uv run chunk_video_content --env-file .env`
+- Development: `uv run python -m chunk_video_content.src.app --env-file .env`
+- Test: `uv sync --group test && uv run pytest chunk_video_content`
 - Docker:  
   Build: `docker build -t chunk_video_content . --build-arg PROJECTPATH=chunk_video_content`
 
@@ -75,7 +77,8 @@ The summarize_video_content service is designed to generate a comprehensive yet 
 - `logging_level`: Adjustable logging parameters.
 
 **Execution:**
-- Development: `uv run summarize_video_content --env-file .env`
+- Development: `uv run python -m summarize_video_content.src.app --env-file .env`
+- Test: `uv sync --group test && uv run pytest summarize_video_content`
 - Docker:  
   Build: `docker build -t summarize_video_content . --build-arg PROJECTPATH=summarize_video_content`
 
