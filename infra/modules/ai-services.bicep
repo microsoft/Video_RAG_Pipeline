@@ -75,23 +75,27 @@ resource aiProject 'Microsoft.MachineLearningServices/workspaces@2023-08-01-prev
   tags: tags
 }
 
-// Connect the Cognitive Services account to the AI Foundry Project
-// resource aiServiceConnection 'Microsoft.MachineLearningServices/workspaces/connections@2023-08-01-preview' = {
-//   parent: aiProject
-//   name: 'aiservices-connection'
-//   properties: {
-//     category: 'AIServices'
-//     target: cognitiveServicesAccount.id
-//     authType: 'ApiKey'
-//     isSharedToAll: false
-//     credentials: {
-//       key: cognitiveServicesAccount.listKeys().key1
-//     }
-//     metadata: {
-//       resourceName: cognitiveServicesAccount.name
-//     }
-//   }
-// }
+// Connect the Azure OpenAI endpoint to the AI Foundry Project
+resource aiServiceConnection 'Microsoft.MachineLearningServices/workspaces/connections@2023-08-01-preview' = {
+  parent: aiProject
+  name: 'openai-connection'
+  properties: {
+    category: 'AzureOpenAI'
+    target: '${foundryHubName}.openai.azure.com/'
+    authType: 'ApiKey'
+    isSharedToAll: false
+    credentials: {
+      key: cognitiveServicesAccount.listKeys().key1
+    }
+    metadata: {
+      resourceName: cognitiveServicesAccount.name
+      ApiType: 'ApiKey'
+      ApiVersion: '2023-05-15'
+      Kind: 'OpenAI'
+      AuthType: 'ApiKey'
+    }
+  }
+}
 
 output resourceId string = aiHub.id
 output name string = aiHub.name
@@ -246,5 +250,5 @@ output gpt4oDeploymentName string = gpt4oDeploymentName
 output aiProjectName string = aiProject.name
 output aiProjectId string = aiProject.id
 output aiProjectPrincipalId string = aiProject.identity.principalId
-//output aiServiceConnectionName string = aiServiceConnection.name
-//output aiServiceConnectionId string = aiServiceConnection.id
+output aiServiceConnectionName string = aiServiceConnection.name
+output aiServiceConnectionId string = aiServiceConnection.id

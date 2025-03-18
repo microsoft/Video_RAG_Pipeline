@@ -12,12 +12,6 @@
 
 You need to run ```uv pip lock > requirements.txt``` on each project before running azd up.
 
-### Azure AI Foundry
-
-#### Azure AI Project
-
-An Azure AI Project needs to be created in the hub with the connected resources.
-
 ##### Content Understanding
 
 Content understanding needs to have a schema and analyzer.
@@ -135,6 +129,10 @@ A: Your service may have failed to start, or it may be missing some configuratio
 1. If logs are written to disk, use *Console* in the navigation to connect to a shell within the running container.
 
 For more troubleshooting information, visit [Container Apps troubleshooting](https://learn.microsoft.com/azure/container-apps/troubleshooting). 
+
+Q: Why can't I see the deployed model in the AI Foundry?
+
+A: The AI Foundry doesn't currently show models deployed outside the foundry. Since this model was deployed via a Bicep CLI action, it does not appear.
 
 ### Additional information
 
