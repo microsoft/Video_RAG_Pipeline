@@ -92,7 +92,8 @@ resource writeAccessToFinalizeContentQueue 'Microsoft.Authorization/roleAssignme
     description: 'Grant Chunk Video Content app write access to the finalize-content queue'
   }
   dependsOn: [
-    chunkVideoContent // Ensure container app is deployed before role assignment
+    finalizeContentQueue
+    chunkVideoContent // Ensure the finalize-content queue exists
   ]
 }
 
@@ -107,7 +108,8 @@ resource readAccessToIndexFileQueue 'Microsoft.Authorization/roleAssignments@202
     description: 'Grant Chunk Video Content app read access to the index-file queue'
   }
   dependsOn: [
-    chunkVideoContent // Ensure container app is deployed before role assignment
+    indexFileQueue
+    chunkVideoContent // Ensure the index-file queue exists
   ]
 }
 
@@ -122,7 +124,8 @@ resource blobContainerContributorAccess 'Microsoft.Authorization/roleAssignments
     description: 'Grant Chunk Video Content app read/write access to the blob container'
   }
   dependsOn: [
-    chunkVideoContent // Ensure container app is deployed before role assignment
+    blobContainer
+    chunkVideoContent // Ensure the blob container exists
   ]
 }
 

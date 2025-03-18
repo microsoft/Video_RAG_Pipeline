@@ -74,7 +74,8 @@ resource writeAccessToIndexFileQueue 'Microsoft.Authorization/roleAssignments@20
     description: 'Grant Index File API app write access to the index-file queue'
   }
   dependsOn: [
-    indexFileApi // Ensure container app is deployed before role assignment
+    indexFileQueue
+    indexFileApi // Ensure the index-file queue exists
   ]
 }
 

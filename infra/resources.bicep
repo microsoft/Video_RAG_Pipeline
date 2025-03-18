@@ -233,6 +233,8 @@ module aiServices './modules/ai-services.bicep' = {
     gpt4oDeploymentName: 'gpt-4o'
     gpt4oModelName: 'gpt-4o'
     gpt4oModelVersion: '2024-05-13'
+    aiFoundryProjectName: '${abbrs.machineLearningServicesWorkspaces}${resourceToken}-project'
+    aiFoundryProjectDisplayName: 'Video RAG Pipeline Project'
   }
 }
 
@@ -241,6 +243,10 @@ output AZURE_KEY_VAULT_ENDPOINT string = coreInfra.outputs.keyVaultUri
 output AZURE_KEY_VAULT_NAME string = coreInfra.outputs.keyVaultName
 output AZURE_FOUNDRY_HUB_NAME string = aiServices.outputs.name
 output AZURE_FOUNDRY_HUB_ID string = aiServices.outputs.resourceId
+output AZURE_FOUNDRY_PROJECT_NAME string = aiServices.outputs.aiProjectName
+output AZURE_FOUNDRY_PROJECT_ID string = aiServices.outputs.aiProjectId
+//output AZURE_AI_SERVICE_CONNECTION_NAME string = aiServices.outputs.aiServiceConnectionName
+//output AZURE_AI_SERVICE_CONNECTION_ID string = aiServices.outputs.aiServiceConnectionId
 output AZURE_COGNITIVE_SERVICES_NAME string = aiServices.outputs.cognitiveServicesAccountName
 output AZURE_COGNITIVE_SERVICES_ID string = aiServices.outputs.cognitiveServicesAccountId
 output AZURE_COGNITIVE_SERVICES_ENDPOINT string = aiServices.outputs.cognitiveServicesEndpoint

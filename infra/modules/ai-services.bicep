@@ -34,6 +34,12 @@ param gpt4oModelVersion string = '2024-05-13'
 @description('Capacity for the GPT-4o model deployment')
 param gpt4oCapacity int = 1
 
+@description('Name of the AI Foundry Project')
+param aiFoundryProjectName string = '${foundryHubName}-project'
+
+@description('Display name for the AI Foundry Project')
+param aiFoundryProjectDisplayName string = 'Video RAG AI Project'
+
 resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview' = {
   name: foundryHubName
   location: location
@@ -51,6 +57,41 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview'
   }
   tags: tags
 }
+
+// Create the AI Foundry Project
+resource aiProject 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview' = {
+  name: aiFoundryProjectName
+  location: location
+  kind: 'project'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    description: 'AI Foundry Project for Video RAG'
+    friendlyName: aiFoundryProjectDisplayName
+    hubResourceId: aiHub.id
+    publicNetworkAccess: 'Enabled'
+  }
+  tags: tags
+}
+
+// Connect the Cognitive Services account to the AI Foundry Project
+// resource aiServiceConnection 'Microsoft.MachineLearningServices/workspaces/connections@2023-08-01-preview' = {
+//   parent: aiProject
+//   name: 'aiservices-connection'
+//   properties: {
+//     category: 'AIServices'
+//     target: cognitiveServicesAccount.id
+//     authType: 'ApiKey'
+//     isSharedToAll: false
+//     credentials: {
+//       key: cognitiveServicesAccount.listKeys().key1
+//     }
+//     metadata: {
+//       resourceName: cognitiveServicesAccount.name
+//     }
+//   }
+// }
 
 output resourceId string = aiHub.id
 output name string = aiHub.name
@@ -202,3 +243,8 @@ output cognitiveServicesAccountName string = cognitiveServicesAccount.name
 output cognitiveServicesAccountId string = cognitiveServicesAccount.id
 output cognitiveServicesEndpoint string = cognitiveServicesAccount.properties.endpoint
 output gpt4oDeploymentName string = gpt4oDeploymentName
+output aiProjectName string = aiProject.name
+output aiProjectId string = aiProject.id
+output aiProjectPrincipalId string = aiProject.identity.principalId
+//output aiServiceConnectionName string = aiServiceConnection.name
+//output aiServiceConnectionId string = aiServiceConnection.id
