@@ -81,7 +81,7 @@ resource aiServiceConnection 'Microsoft.MachineLearningServices/workspaces/conne
   name: 'openai-connection'
   properties: {
     category: 'AzureOpenAI'
-    target: '${foundryHubName}.openai.azure.com/'
+    target: cognitiveServicesAccount.properties.endpoint
     authType: 'ApiKey'
     isSharedToAll: false
     credentials: {
