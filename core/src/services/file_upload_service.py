@@ -76,7 +76,9 @@ class AzureBlobFileUploadService():
                 await blob_client.upload_blob_from_url(source_url, overwrite=True)
         
         # Generate and return the SAS URL for the uploaded blob
-        return await self.generate_blob_url(blob_name=blob_name)
+        sas_url = await self.generate_blob_url(blob_name=blob_name)
+        await asyncio.sleep(5) # Prevent a race condition between SAS creation and activation
+        return sas_url
 
     async def generate_blob_url(
         self,
