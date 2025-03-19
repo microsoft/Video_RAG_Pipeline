@@ -3,9 +3,11 @@ import logging
 import asyncio
 import mimetypes
 import requests
+import os
 
 from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Depends
 
@@ -62,7 +64,9 @@ async def extract_file_type(file_url: str) -> str:
     Returns:
         str: The MIME type of the file.
     """
-    url_mime_type, _ = mimetypes.guess_type(file_url)
+    parsed_url = urlparse(file_url)
+    file_extension = os.path.splitext(parsed_url.path)[1].lower()
+    url_mime_type = mimetypes.types_map.get(file_extension)
     logger.info("Received content type header: %s", url_mime_type)
     
     if not url_mime_type:
