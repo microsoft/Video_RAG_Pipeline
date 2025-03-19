@@ -71,9 +71,9 @@ async def extract_file_type(file_url: str) -> str:
     
     if not url_mime_type:
         logger.info("Attempting to fetch content type from URL headers")
-        # Use HEAD request to avoid downloading the entire file
-        response = requests.head(file_url, timeout=10)
-        if response.status_code == 200 and 'content-type' in response.headers:
+        # Use GET request with Range header to avoid downloading the entire file
+        response = requests.get(file_url, headers={"Range": "bytes=0-999"})
+        if response.status_code == 206 and 'content-type' in response.headers:  # Check for Partial Content
             url_mime_type = response.headers['content-type'].split(';')[0].strip()
             logger.info("Retrieved content-type from header: %s", url_mime_type)
         else:
