@@ -73,25 +73,7 @@ class AzureBlobFileUploadService():
             # Get the BlobClient for the specific blob
             async with blob_service_client.get_blob_client(container=self.storage_container_name, blob=blob_name) as blob_client:
                 # Start the copy operation
-                copy_properties = await blob_client.start_copy_from_url(source_url)
-                copy_id = copy_properties["copy_id"]
-                
-                # Poll until copy completes or fails
-                for attempt in range(max_polling_attempts):
-                    properties = await blob_client.get_blob_properties()
-                    copy_status = properties.copy.status
-                    
-                    if copy_status == "success":
-                        break                        
-                    elif copy_status == "failed" or copy_status == "aborted":
-                        raise Exception(f"Copy operation failed: {properties.copy.status_description}")                        
-                    elif attempt == max_polling_attempts - 1:
-                        # Abort the copy operation if max attempts reached
-                        await blob_client.abort_copy(copy_id)
-                        raise TimeoutError(f"Copy operation timed out after {max_polling_attempts * polling_interval} seconds")
-                    
-                    # Wait before checking again
-                    await asyncio.sleep(polling_interval)
+                await blob_client.upload_blob_from_url(source_url, overwrite=True)
         
         # Generate and return the SAS URL for the uploaded blob
         return await self.generate_blob_url(blob_name=blob_name)
