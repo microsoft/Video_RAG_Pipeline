@@ -151,6 +151,9 @@ class MessageHandler:
 
             # Log that the summarized message has been sent successfully
             logger.info(f"Full video processing result events produced successfully :: correlation_id={correlation_id}")
+        elif content_result.status == "Failed":
+            # Raise a fatal exception if the content understanding has failed
+            raise FatalQueueingException(f"Video processing failed on Content Understanding :: correlation_id={correlation_id}")
         else:
             # Raise a retrial exception if the video is still processing
             raise RetryQueueingException(
