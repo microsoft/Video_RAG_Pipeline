@@ -94,6 +94,15 @@ class MessageHandler():
                     if os.path.exists(mp4_path):
                         os.remove(mp4_path)
                         self.logger.info(f"Deleted temporary MP4 file: {mp4_path}")
+            else:
+                # Upload the original file to Azure Blob Storage and update the file URL
+                self.logger.info(f"Uploading file to Azure Blob Storage: {file_name}")
+                blob_metadata.fileUrl = await self.blob_upload_service.upload_from_url_to_azure_blob(
+                    source_url=blob_metadata.fileUrl,
+                    blob_name=file_name
+                )
+                is_uploaded = True
+                self.logger.info(f"File uploaded to Azure Blob Storage: {blob_metadata.fileUrl}")
 
             # Upload the content URL to the Content Understanding service and get the video ID
             self.logger.info(blob_metadata.fileUrl)

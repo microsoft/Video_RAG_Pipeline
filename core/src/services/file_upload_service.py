@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+import asyncio
+import aiohttp
 from azure.core.credentials import AzureNamedKeyCredential
 from azure.storage.blob.aio import BlobServiceClient
 from azure.storage.blob import BlobSasPermissions, generate_blob_sas
@@ -48,6 +50,52 @@ class AzureBlobFileUploadService():
 
         return blob_url
     
+    async def upload_from_url_to_azure_blob(
+        self,
+        source_url: str,
+        blob_name: str,
+        max_polling_attempts: int = 60,
+        polling_interval: int = 5,
+        timeout: int = 300
+    ) -> str:
+        """
+        Downloads content from a URL and uploads it to Azure Blob Storage, then returns its SAS URL.
+
+        :param source_url: URL of the content to download and upload
+        :param blob_name: Name to assign to the blob in storage
+        :return: SAS URL of the uploaded blob
+        """
+        
+        account_url = f"https://{self.storage_account_name}.blob.core.windows.net"
+    
+        # Initialize the BlobServiceClient with the account URL and credentials
+        async with BlobServiceClient(account_url=account_url, credential=self.credential, connection_timeout=timeout) as blob_service_client:
+            # Get the BlobClient for the specific blob
+            async with blob_service_client.get_blob_client(container=self.storage_container_name, blob=blob_name) as blob_client:
+                # Start the copy operation
+                copy_properties = await blob_client.start_copy_from_url(source_url)
+                copy_id = copy_properties["copy_id"]
+                
+                # Poll until copy completes or fails
+                for attempt in range(max_polling_attempts):
+                    properties = await blob_client.get_blob_properties()
+                    copy_status = properties.copy.status
+                    
+                    if copy_status == "success":
+                        break                        
+                    elif copy_status == "failed" or copy_status == "aborted":
+                        raise Exception(f"Copy operation failed: {properties.copy.status_description}")                        
+                    elif attempt == max_polling_attempts - 1:
+                        # Abort the copy operation if max attempts reached
+                        await blob_client.abort_copy(copy_id)
+                        raise TimeoutError(f"Copy operation timed out after {max_polling_attempts * polling_interval} seconds")
+                    
+                    # Wait before checking again
+                    await asyncio.sleep(polling_interval)
+        
+        # Generate and return the SAS URL for the uploaded blob
+        return await self.generate_blob_url(blob_name=blob_name)
+
     async def generate_blob_url(
         self,
         blob_name: str,
