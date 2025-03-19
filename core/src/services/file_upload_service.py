@@ -54,8 +54,6 @@ class AzureBlobFileUploadService():
         self,
         source_url: str,
         blob_name: str,
-        max_polling_attempts: int = 60,
-        polling_interval: int = 5,
         timeout: int = 300
     ) -> str:
         """
