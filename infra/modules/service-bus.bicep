@@ -47,6 +47,9 @@ resource indexFileQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' = {
     enablePartitioning: false
     enableExpress: false
   }
+  dependsOn: [
+    serviceBus // Ensure the Service Bus namespace exists
+  ]
 }
 
 // Create a queue for finalizing content
@@ -64,6 +67,9 @@ resource finalizeContentQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01
     enablePartitioning: false
     enableExpress: false
   }
+  dependsOn: [
+    serviceBus // Ensure the Service Bus namespace exists
+  ]
 }
 
 // Create a queue for video summary
@@ -81,6 +87,9 @@ resource videoSummaryQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' =
     enablePartitioning: false
     enableExpress: false
   }
+  dependsOn: [
+    serviceBus // Ensure the Service Bus namespace exists
+  ]
 }
 
 output serviceBusNamespaceName string = serviceBus.outputs.name

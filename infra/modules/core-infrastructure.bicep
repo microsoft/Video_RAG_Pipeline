@@ -113,6 +113,9 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
   properties: {
     publicAccess: 'None'
   }
+  dependsOn: [
+    storageAccount // Ensure the Storage Account exists
+  ]
 }
 
 output logAnalyticsWorkspaceResourceId string = monitoring.outputs.logAnalyticsWorkspaceResourceId

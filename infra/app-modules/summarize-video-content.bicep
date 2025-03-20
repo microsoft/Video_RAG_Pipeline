@@ -92,7 +92,8 @@ resource readAccessToFinalizeContentQueue 'Microsoft.Authorization/roleAssignmen
     description: 'Grant Summarize Video Content app read access to the finalize-content queue'
   }
   dependsOn: [
-    summarizeVideoContent // Ensure container app is deployed before role assignment
+    finalizeContentQueue
+    summarizeVideoContent // Ensure the finalize-content queue exists
   ]
 }
 
@@ -107,7 +108,8 @@ resource writeAccessToVideoSummaryQueue 'Microsoft.Authorization/roleAssignments
     description: 'Grant Summarize Video Content app write access to the video-summary queue'
   }
   dependsOn: [
-    summarizeVideoContent // Ensure container app is deployed before role assignment
+    videoSummaryQueue
+    summarizeVideoContent // Ensure the video-summary queue exists
   ]
 }
 
@@ -122,7 +124,8 @@ resource blobContainerReaderAccess 'Microsoft.Authorization/roleAssignments@2022
     description: 'Grant Summarize Video Content app read access to the blob container'
   }
   dependsOn: [
-    summarizeVideoContent // Ensure container app is deployed before role assignment
+    blobContainer
+    summarizeVideoContent // Ensure the blob container exists
   ]
 }
 
