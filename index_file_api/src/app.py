@@ -3,9 +3,11 @@ import logging
 import asyncio
 import mimetypes
 import requests
+import os
 
 from dependency_injector.wiring import Provide, inject
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Depends
 
@@ -62,18 +64,17 @@ async def extract_file_type(file_url: str) -> str:
     Returns:
         str: The MIME type of the file.
     """
-    url_mime_type, _ = mimetypes.guess_type(file_url)
-    logger.info("Received content type header: %s", url_mime_type)
+    url_mime_type: str = None
     
-    if not url_mime_type:
-        logger.info("Attempting to fetch content type from URL headers")
-        # Use HEAD request to avoid downloading the entire file
-        response = requests.head(file_url, timeout=10)
-        if response.status_code == 200 and 'content-type' in response.headers:
-            url_mime_type = response.headers['content-type'].split(';')[0].strip()
-            logger.info("Retrieved content-type from header: %s", url_mime_type)
-        else:
-            logger.warning("Failed to get content-type from headers: HTTP %s", response.status_code)
+    logger.info("Attempting to fetch content type from URL headers")
+    # Use GET request with Range header to avoid downloading the entire file
+    response = requests.get(file_url, headers={"Range": "bytes=0-999"})
+
+    if response.status_code == 206 and 'content-type' in response.headers:  # Check for Partial Content
+        url_mime_type = response.headers['content-type'].split(';')[0].strip()
+        logger.info("Retrieved content-type from header: %s", url_mime_type)
+    else:
+        logger.warning("Failed to get content-type from headers: HTTP %s", response.status_code)
 
     return url_mime_type
     
@@ -97,9 +98,10 @@ async def process_payload(
 
         # Validate mime type from the url
         url_mime_type = await extract_file_type(payload.fileUrl)
+
         logger.info("Received content type header: %s", url_mime_type)
         
-        if url_mime_type not in settings.allowed_mime_types:
+        if not url_mime_type or url_mime_type not in settings.allowed_mime_types:
             logger.error("Invalid content type: %s", url_mime_type)
             raise HTTPException(
                 status_code=400, 
@@ -132,6 +134,8 @@ async def process_payload(
 
         return {"correlation_id": str(correlation_id)}
 
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         logger.error("An unexpected error occurred: %s", e)
         raise HTTPException(status_code=500, detail=f"Server error.")

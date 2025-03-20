@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+import asyncio
+import aiohttp
 from azure.core.credentials import AzureNamedKeyCredential
 from azure.storage.blob.aio import BlobServiceClient
 from azure.storage.blob import BlobSasPermissions, generate_blob_sas
@@ -48,6 +50,34 @@ class AzureBlobFileUploadService():
 
         return blob_url
     
+    async def upload_from_url_to_azure_blob(
+        self,
+        source_url: str,
+        blob_name: str,
+        timeout: int = 300
+    ) -> str:
+        """
+        Downloads content from a URL and uploads it to Azure Blob Storage, then returns its SAS URL.
+
+        :param source_url: URL of the content to download and upload
+        :param blob_name: Name to assign to the blob in storage
+        :return: SAS URL of the uploaded blob
+        """
+        
+        account_url = f"https://{self.storage_account_name}.blob.core.windows.net"
+    
+        # Initialize the BlobServiceClient with the account URL and credentials
+        async with BlobServiceClient(account_url=account_url, credential=self.credential, connection_timeout=timeout) as blob_service_client:
+            # Get the BlobClient for the specific blob
+            async with blob_service_client.get_blob_client(container=self.storage_container_name, blob=blob_name) as blob_client:
+                # Start the copy operation
+                await blob_client.upload_blob_from_url(source_url, overwrite=True)
+        
+        # Generate and return the SAS URL for the uploaded blob
+        sas_url = await self.generate_blob_url(blob_name=blob_name)
+        await asyncio.sleep(5) # Prevent a race condition between SAS creation and activation
+        return sas_url
+
     async def generate_blob_url(
         self,
         blob_name: str,
