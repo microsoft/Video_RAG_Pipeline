@@ -8,6 +8,7 @@ param location string = resourceGroup().location
 param tags object = {}
 
 @description('ApplicationInsights Connection String')
+@secure()
 param applicationInsightsConnectionString string
 
 @description('Container Apps Environment Resource ID')
@@ -30,7 +31,8 @@ param identityResourceId string
 param identityClientId string
 
 @description('App secrets')
-param secrets array
+@secure()
+param secrets object
 
 @description('Environment variables')
 param envVars array
@@ -68,7 +70,7 @@ module app 'br/public:avm/res/app/container-app:0.8.0' = {
     scaleMinReplicas: 1
     scaleMaxReplicas: 10
     secrets: {
-      secureList: secrets
+      secureList: secrets.secrets
     }
     containers: [
       {

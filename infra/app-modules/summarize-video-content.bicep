@@ -5,6 +5,7 @@ param location string = resourceGroup().location
 param tags object = {}
 
 @description('Connection string for Application Insights')
+@secure()
 param applicationInsightsConnectionString string
 
 @description('Resource ID of the Container App Environment')
@@ -27,7 +28,8 @@ param summarizeVideoContentIdentityResourceId string
 param summarizeVideoContentIdentityClientId string
 
 @description('Secrets for the app')
-param summarizeVideoContentSecrets array
+@secure()
+param summarizeVideoContentSecrets object
 
 @description('Environment variables for the app')
 param summarizeVideoContentEnvVars array
