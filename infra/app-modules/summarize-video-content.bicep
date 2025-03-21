@@ -4,9 +4,8 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-@description('Connection string for Application Insights')
-@secure()
-param applicationInsightsConnectionString string
+@description('Application Insights resource ID for monitoring')
+param applicationInsightsResourceId string
 
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
@@ -50,7 +49,7 @@ module summarizeVideoContent '../modules/container-app.bicep' = {
     name: 'summarizeVideoContent'
     location: location
     tags: tags
-    applicationInsightsConnectionString: applicationInsightsConnectionString
+    applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
     containerRegistryLoginServer: containerRegistryLoginServer
     exists: summarizeVideoContentExists

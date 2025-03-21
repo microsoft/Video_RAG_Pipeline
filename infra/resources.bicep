@@ -171,7 +171,8 @@ module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
   params: {
     location: location
     tags: tags
-    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    // Replace connection string with resource ID
+    applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
     containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     chunkVideoContentExists: chunkVideoContentExists
@@ -191,7 +192,8 @@ module indexFileApiApp './app-modules/index-file-api.bicep' = {
   params: {
     location: location
     tags: tags
-    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    // Replace connection string with resource ID
+    applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
     containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     indexFileApiExists: indexFileApiExists
@@ -209,7 +211,8 @@ module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = 
   params: {
     location: location
     tags: tags
-    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    // Replace connection string with resource ID
+    applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
     containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     summarizeVideoContentExists: summarizeVideoContentExists
