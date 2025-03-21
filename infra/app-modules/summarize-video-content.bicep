@@ -10,21 +10,12 @@ param applicationInsightsResourceId string
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
 
-@description('Login server for the container registry')
-param containerRegistryLoginServer string
-
 @description('Whether the app exists')
 param summarizeVideoContentExists bool
 
 @description('Definition of the app')
 @secure()
 param summarizeVideoContentDefinition object
-
-@description('Resource ID of the managed identity')
-param summarizeVideoContentIdentityResourceId string
-
-@description('Client ID of the managed identity')
-param summarizeVideoContentIdentityClientId string
 
 @description('Secrets for the app')
 @secure()
@@ -42,28 +33,80 @@ param storageAccountName string
 @description('Blob container name')
 param blobContainerName string
 
+@description('Resource token for unique resource naming')
+param resourceToken string
+
+@description('Abbreviations to use for resource naming')
+param abbrs object
+
+@description('Name of the app')
+param name string = 'summarizeVideoContent'
+
+// Create managed identities for the container apps
+module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
+  name: 'summarizeVideoContentidentity'
+  params: {
+    name: '${abbrs.managedIdentityUserAssignedIdentities}summarizeVideoContent-${resourceToken}'
+    location: location
+  }
+}
+
+// Create container registry for this app with direct role assignment
+module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
+  name: 'summarize-video-content-registry'
+  params: {
+    name: '${abbrs.containerRegistryRegistries}summ${resourceToken}'
+    location: location
+    tags: tags
+    acrAdminUserEnabled: true
+    publicNetworkAccess: 'Enabled'
+    roleAssignments: [
+      {
+        principalId: identity.outputs.principalId
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
+      }
+    ]
+  }
+}
+
+// Remove the separate ACR pull role assignment module
+
+// Grant Storage Blob Data Contributor role to the identity
+module storageBlobContributorRole '../modules/roles/storage-blob-contributor-role.bicep' = if (!empty(storageAccountName)) {
+  name: '${name}-storage-blob-contributor-role'
+  params: {
+    storageAccountName: storageAccountName
+    containerName: blobContainerName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
+}
+
 // Deploy Summarize Video Content Container App
 module summarizeVideoContent '../modules/container-app.bicep' = {
   name: 'summarizeVideoContentContainerApp'
   params: {
-    name: 'summarizeVideoContent'
+    name: name
     location: location
     tags: tags
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: containerRegistryLoginServer
+    containerRegistryLoginServer: containerRegistry.outputs.loginServer
     exists: summarizeVideoContentExists
     appDefinition: summarizeVideoContentDefinition
-    identityResourceId: summarizeVideoContentIdentityResourceId
-    identityClientId: summarizeVideoContentIdentityClientId
+    identityResourceId: identity.outputs.resourceId
+    identityClientId: identity.outputs.clientId
+    identityPrincipalId: identity.outputs.principalId
     secrets: summarizeVideoContentSecrets
     envVars: summarizeVideoContentEnvVars
     imageName: 'summarize-video-content'
   }
   dependsOn: [
-    finalizeContentQueue   // Ensure the finalize-content queue exists
-    videoSummaryQueue      // Ensure the video-summary queue exists
-    blobContainer          // Ensure the blob container exists
+    storageBlobContributorRole  // Ensure Storage Blob role exists
+    finalizeContentQueue        // Ensure the finalize-content queue exists
+    videoSummaryQueue           // Ensure the video-summary queue exists
+    blobContainer               // Ensure the blob container exists
   ]
 }
 
@@ -82,52 +125,40 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
   name: '${storageAccountName}/default/${blobContainerName}'
 }
 
-// Grant read access to the finalize content queue
-resource readAccessToFinalizeContentQueue 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (summarizeVideoContentExists) {
-  name: guid(finalizeContentQueue.id, summarizeVideoContentIdentityClientId, 'Receiver')
-  scope: finalizeContentQueue
-  properties: {
-    principalId: summarizeVideoContentIdentityClientId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0') // Azure Service Bus Data Receiver
-    principalType: 'ServicePrincipal'
-    description: 'Grant Summarize Video Content app read access to the finalize-content queue'
+// Grant read access to the finalize content queue using the module
+module finalizeReceiverRole '../modules/roles/service-bus-receiver-role.bicep' = if (summarizeVideoContentExists) {
+  name: '${name}-finalize-receiver-role'
+  params: {
+    serviceBusNamespaceName: serviceBusNamespaceName
+    queueName: 'finalize-content'
+    principalId: identity.outputs.principalId
+    appName: name
   }
   dependsOn: [
     finalizeContentQueue
-    summarizeVideoContent // Ensure the finalize-content queue exists
+    summarizeVideoContent
   ]
 }
 
-// Grant write access to the video summary queue
-resource writeAccessToVideoSummaryQueue 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (summarizeVideoContentExists) {
-  name: guid(videoSummaryQueue.id, summarizeVideoContentIdentityClientId, 'Sender')
-  scope: videoSummaryQueue
-  properties: {
-    principalId: summarizeVideoContentIdentityClientId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '69a216fc-b8fb-44d8-bc22-1f3c2cd27a39') // Azure Service Bus Data Sender
-    principalType: 'ServicePrincipal'
-    description: 'Grant Summarize Video Content app write access to the video-summary queue'
+// Grant write access to the video summary queue using the module
+module videoSummarySenderRole '../modules/roles/service-bus-sender-role.bicep' = if (summarizeVideoContentExists) {
+  name: '${name}-video-summary-sender-role'
+  params: {
+    serviceBusNamespaceName: serviceBusNamespaceName
+    queueName: 'video-summary'
+    principalId: identity.outputs.principalId
+    appName: name
   }
   dependsOn: [
     videoSummaryQueue
-    summarizeVideoContent // Ensure the video-summary queue exists
+    summarizeVideoContent
   ]
 }
 
-// Grant Storage Blob Data Reader access to the blob container
-resource blobContainerReaderAccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (summarizeVideoContentExists) {
-  name: guid(blobContainer.id, summarizeVideoContentIdentityClientId, 'BlobReader')
-  scope: blobContainer
-  properties: {
-    principalId: summarizeVideoContentIdentityClientId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1') // Storage Blob Data Reader
-    principalType: 'ServicePrincipal'
-    description: 'Grant Summarize Video Content app read access to the blob container'
-  }
-  dependsOn: [
-    blobContainer
-    summarizeVideoContent // Ensure the blob container exists
-  ]
-}
+// Remove existing Storage Blob Data Reader role assignment
 
 output resourceId string = summarizeVideoContent.outputs.resourceId
+output identityPrincipalId string = identity.outputs.principalId
+output identityResourceId string = identity.outputs.resourceId
+output identityClientId string = identity.outputs.clientId
+output containerRegistryName string = containerRegistry.outputs.name

@@ -10,21 +10,12 @@ param applicationInsightsResourceId string
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
 
-@description('Login server for the container registry')
-param containerRegistryLoginServer string
-
 @description('Whether the app exists')
 param chunkVideoContentExists bool
 
 @description('Definition of the app')
 @secure()
 param chunkVideoContentDefinition object
-
-@description('Resource ID of the managed identity')
-param chunkVideoContentIdentityResourceId string
-
-@description('Client ID of the managed identity')
-param chunkVideoContentIdentityClientId string
 
 @description('Secrets for the app')
 @secure()
@@ -42,28 +33,80 @@ param storageAccountName string
 @description('Blob container name')
 param blobContainerName string
 
+@description('Resource token for unique resource naming')
+param resourceToken string
+
+@description('Abbreviations to use for resource naming')
+param abbrs object
+
+@description('Name of the app')
+param name string = 'chunkVideoContent'
+
+// Create managed identities for the container apps
+module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
+  name: 'chunkVideoContentidentity'
+  params: {
+    name: '${abbrs.managedIdentityUserAssignedIdentities}chunkVideoContent-${resourceToken}'
+    location: location
+  }
+}
+
+// Create container registry for this app with direct role assignment
+module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
+  name: 'chunk-video-content-registry'
+  params: {
+    name: '${abbrs.containerRegistryRegistries}chunk${resourceToken}'
+    location: location
+    tags: tags
+    acrAdminUserEnabled: true
+    publicNetworkAccess: 'Enabled'
+    roleAssignments: [
+      {
+        principalId: identity.outputs.principalId
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
+      }
+    ]
+  }
+}
+
+// Remove the separate ACR pull role assignment module
+
+// Grant Storage Blob Data Contributor role to the identity
+module storageBlobContributorRole '../modules/roles/storage-blob-contributor-role.bicep' = if (!empty(storageAccountName)) {
+  name: '${name}-storage-blob-contributor-role'
+  params: {
+    storageAccountName: storageAccountName
+    containerName: blobContainerName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
+}
+
 // Deploy Chunk Video Content Container App
 module chunkVideoContent '../modules/container-app.bicep' = {
   name: 'chunkVideoContentContainerApp'
   params: {
-    name: 'chunkVideoContent'
+    name: name
     location: location
     tags: tags
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: containerRegistryLoginServer
+    containerRegistryLoginServer: containerRegistry.outputs.loginServer
     exists: chunkVideoContentExists
     appDefinition: chunkVideoContentDefinition
-    identityResourceId: chunkVideoContentIdentityResourceId
-    identityClientId: chunkVideoContentIdentityClientId
+    identityResourceId: identity.outputs.resourceId
+    identityClientId: identity.outputs.clientId
+    identityPrincipalId: identity.outputs.principalId
     secrets: chunkVideoContentSecrets
     envVars: chunkVideoContentEnvVars
     imageName: 'chunk-video-content'
   }
   dependsOn: [
-    finalizeContentQueue   // Ensure the finalize-content queue exists
-    indexFileQueue         // Ensure the index-file queue exists
-    blobContainer          // Ensure the blob container exists
+    storageBlobContributorRole   // Ensure Storage Blob role exists
+    finalizeContentQueue         // Ensure the finalize-content queue exists
+    indexFileQueue               // Ensure the index-file queue exists
+    blobContainer                // Ensure the blob container exists
   ]
 }
 
@@ -82,52 +125,38 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
   name: '${storageAccountName}/default/${blobContainerName}'
 }
 
-// Grant write access to the finalize content queue
-resource writeAccessToFinalizeContentQueue 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (chunkVideoContentExists) {
-  name: guid(finalizeContentQueue.id, chunkVideoContentIdentityClientId, 'Sender')
-  scope: finalizeContentQueue
-  properties: {
-    principalId: chunkVideoContentIdentityClientId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '69a216fc-b8fb-44d8-bc22-1f3c2cd27a39') // Azure Service Bus Data Sender
-    principalType: 'ServicePrincipal'
-    description: 'Grant Chunk Video Content app write access to the finalize-content queue'
+// Grant write access to the finalize content queue using the module
+module finalizeSenderRole '../modules/roles/service-bus-sender-role.bicep' = if (chunkVideoContentExists) {
+  name: '${name}-finalize-sender-role'
+  params: {
+    serviceBusNamespaceName: serviceBusNamespaceName
+    queueName: 'finalize-content'
+    principalId: identity.outputs.principalId
+    appName: name
   }
   dependsOn: [
     finalizeContentQueue
-    chunkVideoContent // Ensure the finalize-content queue exists
+    chunkVideoContent
   ]
 }
 
-// Grant read access to the index file queue
-resource readAccessToIndexFileQueue 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (chunkVideoContentExists) {
-  name: guid(indexFileQueue.id, chunkVideoContentIdentityClientId, 'Receiver')
-  scope: indexFileQueue
-  properties: {
-    principalId: chunkVideoContentIdentityClientId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0') // Azure Service Bus Data Receiver
-    principalType: 'ServicePrincipal'
-    description: 'Grant Chunk Video Content app read access to the index-file queue'
+// Grant read access to the index file queue using the module
+module indexReceiverRole '../modules/roles/service-bus-receiver-role.bicep' = if (chunkVideoContentExists) {
+  name: '${name}-index-receiver-role'
+  params: {
+    serviceBusNamespaceName: serviceBusNamespaceName
+    queueName: 'index-file'
+    principalId: identity.outputs.principalId
+    appName: name
   }
   dependsOn: [
     indexFileQueue
-    chunkVideoContent // Ensure the index-file queue exists
-  ]
-}
-
-// Grant Storage Blob Data Contributor access to the blob container
-resource blobContainerContributorAccess 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (chunkVideoContentExists) {
-  name: guid(blobContainer.id, chunkVideoContentIdentityClientId, 'BlobContributor')
-  scope: blobContainer
-  properties: {
-    principalId: chunkVideoContentIdentityClientId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe') // Storage Blob Data Contributor
-    principalType: 'ServicePrincipal'
-    description: 'Grant Chunk Video Content app read/write access to the blob container'
-  }
-  dependsOn: [
-    blobContainer
-    chunkVideoContent // Ensure the blob container exists
+    chunkVideoContent
   ]
 }
 
 output resourceId string = chunkVideoContent.outputs.resourceId
+output identityPrincipalId string = identity.outputs.principalId
+output identityResourceId string = identity.outputs.resourceId
+output identityClientId string = identity.outputs.clientId
+output containerRegistryName string = containerRegistry.outputs.name

@@ -7,9 +7,6 @@ param tags object = {}
 @description('Name of the Foundry Hub')
 param foundryHubName string = 'foundryHub'
 
-@description('Resource ID of the container registry')
-param containerRegistryResourceId string
-
 @description('Resource ID of the Application Insights instance')
 param applicationInsightsResourceId string
 
@@ -40,6 +37,21 @@ param aiFoundryProjectName string = '${foundryHubName}-project'
 @description('Display name for the AI Foundry Project')
 param aiFoundryProjectDisplayName string = 'Video RAG AI Project'
 
+@description('Abbreviations to use for resource naming')
+param abbrs object
+
+// Create a dedicated container registry for AI services
+module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
+  name: 'ai-services-registry'
+  params: {
+    name: '${abbrs.containerRegistryRegistries}ai${resourceToken}'
+    location: location
+    tags: tags
+    acrAdminUserEnabled: true
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
 resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview' = {
   name: foundryHubName
   location: location
@@ -51,7 +63,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview'
     description: 'Azure AI Foundry Hub'
     friendlyName: 'AI Foundry Hub'
     publicNetworkAccess: 'Enabled'
-    containerRegistry: containerRegistryResourceId
+    containerRegistry: containerRegistry.outputs.resourceId
     applicationInsights: applicationInsightsResourceId
     keyVault: keyVaultResourceId
   }
@@ -97,9 +109,6 @@ resource aiServiceConnection 'Microsoft.MachineLearningServices/workspaces/conne
   }
 }
 
-output resourceId string = aiHub.id
-output name string = aiHub.name
-output principalId string = aiHub.identity.principalId
 
 // Add Cognitive Services account of kind AIServices
 resource cognitiveServicesAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
@@ -252,3 +261,7 @@ output aiProjectId string = aiProject.id
 output aiProjectPrincipalId string = aiProject.identity.principalId
 output aiServiceConnectionName string = aiServiceConnection.name
 output aiServiceConnectionId string = aiServiceConnection.id
+output resourceId string = aiHub.id
+output name string = aiHub.name
+output principalId string = aiHub.identity.principalId
+output containerRegistryName string = containerRegistry.outputs.name
