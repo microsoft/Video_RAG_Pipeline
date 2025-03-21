@@ -78,7 +78,6 @@ module indexFileApi '../modules/container-app.bicep' = {
     appDefinition: indexFileApiDefinition
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
-    identityPrincipalId: identity.outputs.principalId
     secrets: indexFileApiSecrets
     envVars: indexFileApiEnvVars
     imageName: 'index-file-api'

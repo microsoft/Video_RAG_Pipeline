@@ -97,7 +97,6 @@ module summarizeVideoContent '../modules/container-app.bicep' = {
     appDefinition: summarizeVideoContentDefinition
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
-    identityPrincipalId: identity.outputs.principalId
     secrets: summarizeVideoContentSecrets
     envVars: summarizeVideoContentEnvVars
     imageName: 'summarize-video-content'

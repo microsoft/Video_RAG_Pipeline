@@ -232,10 +232,6 @@ module aiServices './modules/ai-services.bicep' = {
   }
 }
 
-output AZURE_CONTAINER_REGISTRY_ENDPOINT_CHUNK string = chunkVideoContentApp.outputs.containerRegistryLoginServer
-output AZURE_CONTAINER_REGISTRY_ENDPOINT_INDEX string = indexFileApiApp.outputs.containerRegistryLoginServer
-output AZURE_CONTAINER_REGISTRY_ENDPOINT_SUMMARIZE string = summarizeVideoContentApp.outputs.containerRegistryLoginServer
-output AZURE_CONTAINER_REGISTRY_ENDPOINT_AI string = aiServices.outputs.containerRegistryLoginServer
 output AZURE_KEY_VAULT_ENDPOINT string = coreInfra.outputs.keyVaultUri
 output AZURE_KEY_VAULT_NAME string = coreInfra.outputs.keyVaultName
 output AZURE_FOUNDRY_HUB_NAME string = aiServices.outputs.name

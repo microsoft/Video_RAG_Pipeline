@@ -97,7 +97,6 @@ module chunkVideoContent '../modules/container-app.bicep' = {
     appDefinition: chunkVideoContentDefinition
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
-    identityPrincipalId: identity.outputs.principalId
     secrets: chunkVideoContentSecrets
     envVars: chunkVideoContentEnvVars
     imageName: 'chunk-video-content'
