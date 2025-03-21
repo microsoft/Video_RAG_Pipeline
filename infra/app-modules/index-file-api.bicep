@@ -4,8 +4,8 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-@description('Connection string for Application Insights')
-param applicationInsightsConnectionString string
+@description('Application Insights resource ID for monitoring')
+param applicationInsightsResourceId string
 
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
@@ -27,7 +27,8 @@ param indexFileApiIdentityResourceId string
 param indexFileApiIdentityClientId string
 
 @description('Secrets for the app')
-param indexFileApiSecrets array
+@secure()
+param indexFileApiSecrets object
 
 @description('Environment variables for the app')
 param indexFileApiEnvVars array
@@ -42,7 +43,7 @@ module indexFileApi '../modules/container-app.bicep' = {
     name: 'indexFileApi'
     location: location
     tags: tags
-    applicationInsightsConnectionString: applicationInsightsConnectionString
+    applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
     containerRegistryLoginServer: containerRegistryLoginServer
     exists: indexFileApiExists

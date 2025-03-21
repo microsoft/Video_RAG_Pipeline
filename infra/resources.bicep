@@ -115,9 +115,15 @@ var storageSecrets = [
 ]
 
 // Combine secrets by service
-var chunkVideoContentSecrets = concat(serviceBusSecrets, contentSecrets, storageSecrets)
-var indexFileApiSecrets = serviceBusSecrets
-var summarizeVideoContentSecrets = concat(serviceBusSecrets, openAISecrets, contentSecrets, storageSecrets)
+var chunkVideoContentSecrets = {
+  secrets : concat(serviceBusSecrets, contentSecrets, storageSecrets)
+}
+var indexFileApiSecrets = {
+  secrets : serviceBusSecrets
+}
+var summarizeVideoContentSecrets = {
+  secrets : concat(serviceBusSecrets, openAISecrets, contentSecrets, storageSecrets)
+}
 
 // Define environment variables by service
 var chunkVideoContentEnvVars = [
@@ -165,7 +171,8 @@ module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
   params: {
     location: location
     tags: tags
-    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    // Replace connection string with resource ID
+    applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
     containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     chunkVideoContentExists: chunkVideoContentExists
@@ -185,7 +192,8 @@ module indexFileApiApp './app-modules/index-file-api.bicep' = {
   params: {
     location: location
     tags: tags
-    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    // Replace connection string with resource ID
+    applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
     containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     indexFileApiExists: indexFileApiExists
@@ -203,7 +211,8 @@ module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = 
   params: {
     location: location
     tags: tags
-    applicationInsightsConnectionString: coreInfra.outputs.applicationInsightsConnectionString
+    // Replace connection string with resource ID
+    applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
     containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     summarizeVideoContentExists: summarizeVideoContentExists

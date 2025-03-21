@@ -7,8 +7,8 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-@description('ApplicationInsights Connection String')
-param applicationInsightsConnectionString string
+@description('Application Insights resource ID for monitoring')
+param applicationInsightsResourceId string
 
 @description('Container Apps Environment Resource ID')
 param containerAppsEnvironmentResourceId string
@@ -30,13 +30,20 @@ param identityResourceId string
 param identityClientId string
 
 @description('App secrets')
-param secrets array
+@secure()
+param secrets object
 
 @description('Environment variables')
 param envVars array
 
 @description('Name to fetch the latest image')
 param imageName string
+
+// Get the Application Insights resource using its ID
+resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: split(applicationInsightsResourceId, '/')[8] // Extract name from resource ID
+  scope: resourceGroup(split(applicationInsightsResourceId, '/')[2], split(applicationInsightsResourceId, '/')[4]) // Extract subscription and resource group
+}
 
 // Process app settings
 var settingsArray = filter(array(appDefinition.settings), i => i.name != '')
@@ -68,7 +75,7 @@ module app 'br/public:avm/res/app/container-app:0.8.0' = {
     scaleMinReplicas: 1
     scaleMaxReplicas: 10
     secrets: {
-      secureList: secrets
+      secureList: secrets.secrets
     }
     containers: [
       {
@@ -81,7 +88,7 @@ module app 'br/public:avm/res/app/container-app:0.8.0' = {
         env: union([
           {
             name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-            value: applicationInsightsConnectionString
+            value: appInsights.properties.ConnectionString
           }
           {
             name: 'AZURE_CLIENT_ID'

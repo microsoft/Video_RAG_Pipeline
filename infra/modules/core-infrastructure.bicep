@@ -120,7 +120,6 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
 
 output logAnalyticsWorkspaceResourceId string = monitoring.outputs.logAnalyticsWorkspaceResourceId
 output applicationInsightsResourceId string = monitoring.outputs.applicationInsightsResourceId
-output applicationInsightsConnectionString string = monitoring.outputs.applicationInsightsConnectionString
 output containerRegistryResourceId string = containerRegistry.outputs.resourceId
 output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
 output containerAppsEnvironmentResourceId string = containerAppsEnvironment.outputs.resourceId

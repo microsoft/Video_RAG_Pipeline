@@ -4,8 +4,8 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-@description('Connection string for Application Insights')
-param applicationInsightsConnectionString string
+@description('Application Insights resource ID for monitoring')
+param applicationInsightsResourceId string
 
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
@@ -27,7 +27,8 @@ param chunkVideoContentIdentityResourceId string
 param chunkVideoContentIdentityClientId string
 
 @description('Secrets for the app')
-param chunkVideoContentSecrets array
+@secure()
+param chunkVideoContentSecrets object
 
 @description('Environment variables for the app')
 param chunkVideoContentEnvVars array
@@ -48,7 +49,7 @@ module chunkVideoContent '../modules/container-app.bicep' = {
     name: 'chunkVideoContent'
     location: location
     tags: tags
-    applicationInsightsConnectionString: applicationInsightsConnectionString
+    applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
     containerRegistryLoginServer: containerRegistryLoginServer
     exists: chunkVideoContentExists
