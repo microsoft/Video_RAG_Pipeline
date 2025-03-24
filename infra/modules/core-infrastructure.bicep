@@ -13,6 +13,8 @@ param keyVaultName string
 var abbrs = loadJsonContent('../abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 
+var storageAccountName = '${abbrs.storageStorageAccounts}${resourceToken}'
+
 // Monitor application with Azure Monitor
 module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
   name: 'monitoring'
@@ -49,10 +51,10 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
         name: 'storage-account-name'
         value: storageAccount.outputs.name
       }
-      // {
-      //   name: 'storage-account-api-key'
-      //   value: storageAccount.
-      // }
+      {
+        name: 'storage-account-api-key'
+        value: listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2022-09-01').keys[0].value
+      }
       {
         name: 'container-name'
         value: blobContainerName
@@ -65,7 +67,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
 module storageAccount 'br/public:avm/res/storage/storage-account:0.6.0' = {
   name: 'storage'
   params: {
-    name: '${abbrs.storageStorageAccounts}${resourceToken}'
+    name: storageAccountName
     location: location
     tags: tags
     kind: 'StorageV2'
