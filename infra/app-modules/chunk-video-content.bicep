@@ -10,13 +10,6 @@ param applicationInsightsResourceId string
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
 
-@description('Whether the app exists')
-param chunkVideoContentExists bool
-
-@description('Definition of the app')
-@secure()
-param chunkVideoContentDefinition object
-
 @description('Secrets for the app')
 @secure()
 param chunkVideoContentSecrets object
@@ -41,6 +34,9 @@ param abbrs object
 
 @description('Name of the app')
 param name string = 'chunkVideoContent'
+
+@description('Key Vault name')
+param keyVaultName string
 
 // Create managed identities for the container apps
 module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
@@ -70,19 +66,6 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' =
   }
 }
 
-// Remove the separate ACR pull role assignment module
-
-// Grant Storage Blob Data Contributor role to the identity
-module storageBlobContributorRole '../modules/roles/storage-blob-contributor-role.bicep' = if (!empty(storageAccountName)) {
-  name: '${name}-storage-blob-contributor-role'
-  params: {
-    storageAccountName: storageAccountName
-    containerName: blobContainerName
-    principalId: identity.outputs.principalId
-    appName: name
-  }
-}
-
 // Deploy Chunk Video Content Container App
 module chunkVideoContent '../modules/container-app.bicep' = {
   name: 'chunkVideoContentContainerApp'
@@ -93,8 +76,6 @@ module chunkVideoContent '../modules/container-app.bicep' = {
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
     containerRegistryLoginServer: containerRegistry.outputs.loginServer
-    exists: chunkVideoContentExists
-    appDefinition: chunkVideoContentDefinition
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
     secrets: chunkVideoContentSecrets
@@ -102,6 +83,7 @@ module chunkVideoContent '../modules/container-app.bicep' = {
     imageName: 'chunk-video-content'
   }
   dependsOn: [
+    keyVaultSecretUserRole    // Ensure Key Vault Secret User role exists
     storageBlobContributorRole   // Ensure Storage Blob role exists
     finalizeContentQueue         // Ensure the finalize-content queue exists
     indexFileQueue               // Ensure the index-file queue exists
@@ -125,7 +107,7 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
 }
 
 // Grant write access to the finalize content queue using the module
-module finalizeSenderRole '../modules/roles/service-bus-sender-role.bicep' = if (chunkVideoContentExists) {
+module finalizeSenderRole '../modules/roles/service-bus-sender-role.bicep' = {
   name: '${name}-finalize-sender-role'
   params: {
     serviceBusNamespaceName: serviceBusNamespaceName
@@ -140,7 +122,7 @@ module finalizeSenderRole '../modules/roles/service-bus-sender-role.bicep' = if 
 }
 
 // Grant read access to the index file queue using the module
-module indexReceiverRole '../modules/roles/service-bus-receiver-role.bicep' = if (chunkVideoContentExists) {
+module indexReceiverRole '../modules/roles/service-bus-receiver-role.bicep' = {
   name: '${name}-index-receiver-role'
   params: {
     serviceBusNamespaceName: serviceBusNamespaceName
@@ -152,6 +134,28 @@ module indexReceiverRole '../modules/roles/service-bus-receiver-role.bicep' = if
     indexFileQueue
     chunkVideoContent
   ]
+}
+
+
+// Grant Storage Blob Data Contributor role to the identity
+module storageBlobContributorRole '../modules/roles/storage-blob-contributor-role.bicep' = if (!empty(storageAccountName)) {
+  name: '${name}-storage-blob-contributor-role'
+  params: {
+    storageAccountName: storageAccountName
+    containerName: blobContainerName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
+}
+
+// Grant Key Vault Secret User role to the identity
+module keyVaultSecretUserRole '../modules/roles/key-vault-secret-user-role.bicep' = {
+  name: '${name}-key-vault-secret-user-role'
+  params: {
+    keyVaultName: keyVaultName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
 }
 
 output resourceId string = chunkVideoContent.outputs.resourceId

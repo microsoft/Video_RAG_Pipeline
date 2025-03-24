@@ -10,13 +10,6 @@ param applicationInsightsResourceId string
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
 
-@description('Whether the app exists')
-param summarizeVideoContentExists bool
-
-@description('Definition of the app')
-@secure()
-param summarizeVideoContentDefinition object
-
 @description('Secrets for the app')
 @secure()
 param summarizeVideoContentSecrets object
@@ -41,6 +34,9 @@ param abbrs object
 
 @description('Name of the app')
 param name string = 'summarizeVideoContent'
+
+@description('Key Vault name')
+param keyVaultName string
 
 // Create managed identities for the container apps
 module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
@@ -69,20 +65,6 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' =
     ]
   }
 }
-
-// Remove the separate ACR pull role assignment module
-
-// Grant Storage Blob Data Contributor role to the identity
-module storageBlobContributorRole '../modules/roles/storage-blob-contributor-role.bicep' = if (!empty(storageAccountName)) {
-  name: '${name}-storage-blob-contributor-role'
-  params: {
-    storageAccountName: storageAccountName
-    containerName: blobContainerName
-    principalId: identity.outputs.principalId
-    appName: name
-  }
-}
-
 // Deploy Summarize Video Content Container App
 module summarizeVideoContent '../modules/container-app.bicep' = {
   name: 'summarizeVideoContentContainerApp'
@@ -93,8 +75,6 @@ module summarizeVideoContent '../modules/container-app.bicep' = {
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
     containerRegistryLoginServer: containerRegistry.outputs.loginServer
-    exists: summarizeVideoContentExists
-    appDefinition: summarizeVideoContentDefinition
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
     secrets: summarizeVideoContentSecrets
@@ -102,6 +82,7 @@ module summarizeVideoContent '../modules/container-app.bicep' = {
     imageName: 'summarize-video-content'
   }
   dependsOn: [
+    keyVaultSecretUserRole    // Ensure Key Vault Secret User role exists
     storageBlobContributorRole  // Ensure Storage Blob role exists
     finalizeContentQueue        // Ensure the finalize-content queue exists
     videoSummaryQueue           // Ensure the video-summary queue exists
@@ -125,7 +106,7 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
 }
 
 // Grant read access to the finalize content queue using the module
-module finalizeReceiverRole '../modules/roles/service-bus-receiver-role.bicep' = if (summarizeVideoContentExists) {
+module finalizeReceiverRole '../modules/roles/service-bus-receiver-role.bicep' = {
   name: '${name}-finalize-receiver-role'
   params: {
     serviceBusNamespaceName: serviceBusNamespaceName
@@ -140,7 +121,7 @@ module finalizeReceiverRole '../modules/roles/service-bus-receiver-role.bicep' =
 }
 
 // Grant write access to the video summary queue using the module
-module videoSummarySenderRole '../modules/roles/service-bus-sender-role.bicep' = if (summarizeVideoContentExists) {
+module videoSummarySenderRole '../modules/roles/service-bus-sender-role.bicep' = {
   name: '${name}-video-summary-sender-role'
   params: {
     serviceBusNamespaceName: serviceBusNamespaceName
@@ -154,7 +135,26 @@ module videoSummarySenderRole '../modules/roles/service-bus-sender-role.bicep' =
   ]
 }
 
-// Remove existing Storage Blob Data Reader role assignment
+// Grant Storage Blob Data Contributor role to the identity
+module storageBlobContributorRole '../modules/roles/storage-blob-contributor-role.bicep' = if (!empty(storageAccountName)) {
+  name: '${name}-storage-blob-contributor-role'
+  params: {
+    storageAccountName: storageAccountName
+    containerName: blobContainerName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
+}
+
+// Grant Key Vault Secret User role to the identity
+module keyVaultSecretUserRole '../modules/roles/key-vault-secret-user-role.bicep' = {
+  name: '${name}-key-vault-secret-user-role'
+  params: {
+    keyVaultName: keyVaultName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
+}
 
 output resourceId string = summarizeVideoContent.outputs.resourceId
 output identityPrincipalId string = identity.outputs.principalId

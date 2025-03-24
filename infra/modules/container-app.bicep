@@ -16,13 +16,6 @@ param containerAppsEnvironmentResourceId string
 @description('Container Registry Login Server')
 param containerRegistryLoginServer string
 
-@description('Whether the app exists (for fetching latest image)')
-param exists bool
-
-@description('App definition with settings')
-@secure()
-param appDefinition object
-
 @description('Identity resource ID')
 param identityResourceId string
 
@@ -45,26 +38,21 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   scope: resourceGroup(split(applicationInsightsResourceId, '/')[2], split(applicationInsightsResourceId, '/')[4]) // Extract subscription and resource group
 }
 
-// Process app settings
-var settingsArray = filter(array(appDefinition.settings), i => i.name != '')
-var secretSettings = map(filter(settingsArray, i => i.?secret != null), i => {
-  name: i.name
-  value: i.value
-  secretRef: i.?secretRef ?? take(replace(replace(toLower(i.name), '_', '-'), '.', '-'), 32)
-})
-var envSettings = map(filter(settingsArray, i => i.?secret == null), i => {
-  name: i.name
-  value: i.value
-})
-
 // Fetch latest image
 module fetchLatestImage '../modules/fetch-container-image.bicep' = {
   name: '${name}-fetch-image'
   params: {
-    exists: exists
+    exists: false
     name: imageName
   }
 }
+
+// Process secrets with identity
+var secretsWithIdentity = [for secret in secrets.secrets: {
+  name: secret.name
+  keyVaultUrl: secret.keyVaultUrl
+  identity: identityResourceId
+}]
 
 // Deploy container app
 module app 'br/public:avm/res/app/container-app:0.8.0' = {
@@ -75,7 +63,7 @@ module app 'br/public:avm/res/app/container-app:0.8.0' = {
     scaleMinReplicas: 1
     scaleMaxReplicas: 10
     secrets: {
-      secureList: secrets.secrets
+      secureList: secretsWithIdentity
     }
     containers: [
       {
@@ -99,12 +87,8 @@ module app 'br/public:avm/res/app/container-app:0.8.0' = {
             value: '80'
           }
         ],
-        envVars,
-        envSettings,
-        map(secretSettings, secret => {
-            name: secret.name
-            secretRef: secret.secretRef
-        }))
+        envVars
+        )
       }
     ]
     managedIdentities: {

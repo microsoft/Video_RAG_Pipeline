@@ -40,6 +40,12 @@ param aiFoundryProjectDisplayName string = 'Video RAG AI Project'
 @description('Abbreviations to use for resource naming')
 param abbrs object
 
+@description('API version for Content Understanding API')
+param contentUnderstandingApiVersion string = '2023-05-01'
+
+@description('API version for Azure OpenAI API')
+param azureOpenaiApiVersion string = '2023-05-15'
+
 // Create a dedicated container registry for AI services
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
   name: 'ai-services-registry'
@@ -128,26 +134,57 @@ resource cognitiveServicesAccount 'Microsoft.CognitiveServices/accounts@2023-05-
   }
 }
 
-// Reference to the Key Vault
-resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
-  name: keyVaultName
-}
-
 // Store the Cognitive Services primary key in Key Vault
-resource cognitiveServicesPrimaryKeySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  parent: keyVault
-  name: 'cognitive-services-primary-key'
+resource contentUnderstandingPrimarySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${keyVaultName}/content-understanding-key'
   properties: {
     value: cognitiveServicesAccount.listKeys().key1
   }
 }
 
-// Store the Cognitive Services secondary key in Key Vault
-resource cognitiveServicesSecondaryKeySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  parent: keyVault
-  name: 'cognitive-services-secondary-key'
+// Store the Cognitive Services primary key in Key Vault
+resource contentUnderstandingEndpoint 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${keyVaultName}/content-understanding-endpoint'
   properties: {
-    value: cognitiveServicesAccount.listKeys().key2
+    value: cognitiveServicesAccount.properties.endpoint
+  }
+}
+
+// Store the Cognitive Services primary key in Key Vault
+resource openAiEndpoint 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${keyVaultName}/open-ai-endpoint'
+  properties: {
+    value: cognitiveServicesAccount.properties.endpoint
+  }
+}
+
+// Store the Content Understanding API version in Key Vault
+resource contentUnderstandingApiVersionSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${keyVaultName}/content-understanding-api-version'
+  properties: {
+    value: contentUnderstandingApiVersion
+  }
+}
+
+// Store the Azure OpenAI API version in Key Vault
+resource azureOpenAiApiVersionSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${keyVaultName}/azure-openai-api-version'
+  properties: {
+    value: azureOpenaiApiVersion
+  }
+}
+
+resource openAiPrimarySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${keyVaultName}/open-ai-key'
+  properties: {
+    value: cognitiveServicesAccount.listKeys().key1
+  }
+}
+
+resource openAiDeploymentName 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${keyVaultName}/open-ai-deployment-name'
+  properties: {
+    value: gpt4oDeploymentName
   }
 }
 

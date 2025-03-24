@@ -4,11 +4,11 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-@description('ID of the user or app to assign access policies for Key Vault')
-param principalId string
-
 @description('Name of the blob container to create in the storage account')
 param blobContainerName string = 'videos'
+
+@description('Name of the Key Vault')
+param keyVaultName string
 
 var abbrs = loadJsonContent('../abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
@@ -36,26 +36,28 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5
   }
 }
 
-// Create access policies for all identities
-var accessPolicies = [
-  {
-    objectId: principalId
-    permissions: {
-      secrets: [ 'get', 'list' ]
-    }
-  }
-]
-
 // Deploy Key Vault
 module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
   name: 'keyvault'
   params: {
-    name: '${abbrs.keyVaultVaults}${resourceToken}'
+    name: keyVaultName
     location: location
     tags: tags
-    enableRbacAuthorization: false
-    accessPolicies: accessPolicies
-    secrets: []
+    enableRbacAuthorization: true
+    secrets: [
+      {
+        name: 'storage-account-name'
+        value: storageAccount.outputs.name
+      }
+      // {
+      //   name: 'storage-account-api-key'
+      //   value: storageAccount.
+      // }
+      {
+        name: 'container-name'
+        value: blobContainerName
+      }
+    ]
   }
 }
 
