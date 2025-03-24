@@ -9,10 +9,6 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-// Setting default values for service bus parameters
-@description('Service Bus Namespace')
-param serviceBusNamespace string = ''
-
 @description('Service Bus API Key')
 @secure()
 param serviceBusApiKey string = ''
@@ -105,7 +101,7 @@ module resources 'resources.bicep' = {
     storageAccountApiKey: storageAccountApiKey
   }
 }
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+
 output AZURE_KEY_VAULT_ENDPOINT string = resources.outputs.AZURE_KEY_VAULT_ENDPOINT
 output AZURE_KEY_VAULT_NAME string = resources.outputs.AZURE_KEY_VAULT_NAME
 output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = resources.outputs.AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID

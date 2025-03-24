@@ -52,15 +52,6 @@ param storageAccountApiKey string = ''
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 
-// Deploy managed identities for container apps (must deploy first to use in core infrastructure)
-module identities './modules/managed-identities.bicep' = {
-  name: 'managed-identities'
-  params: {
-    location: location
-    resourceToken: resourceToken
-    abbrs: abbrs
-  }
-}
 
 // Deploy core infrastructure (monitoring, container registry, container apps environment, key vault)
 module coreInfra './modules/core-infrastructure.bicep' = {
@@ -68,7 +59,6 @@ module coreInfra './modules/core-infrastructure.bicep' = {
   params: {
     location: location
     tags: tags
-    managedIdentityPrincipalIds: identities.outputs.managedIdentityPrincipalIds
     principalId: principalId
   }
 }
@@ -79,7 +69,6 @@ module serviceBusInfra './modules/service-bus.bicep' = {
   params: {
     location: location
     tags: tags
-    managedIdentityPrincipalIds: identities.outputs.managedIdentityPrincipalIds
     resourceToken: resourceToken
     abbrs: abbrs
   }
@@ -171,19 +160,17 @@ module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
   params: {
     location: location
     tags: tags
-    // Replace connection string with resource ID
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
     chunkVideoContentExists: chunkVideoContentExists
     chunkVideoContentDefinition: chunkVideoContentDefinition
-    chunkVideoContentIdentityResourceId: identities.outputs.chunkVideoContentIdentityResourceId
-    chunkVideoContentIdentityClientId: identities.outputs.chunkVideoContentIdentityClientId
     chunkVideoContentSecrets: chunkVideoContentSecrets
     chunkVideoContentEnvVars: chunkVideoContentEnvVars
     serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
     storageAccountName: coreInfra.outputs.storageAccountName
     blobContainerName: coreInfra.outputs.blobContainerName
+    abbrs: abbrs
+    resourceToken: resourceToken
   }
 }
 
@@ -192,17 +179,16 @@ module indexFileApiApp './app-modules/index-file-api.bicep' = {
   params: {
     location: location
     tags: tags
-    // Replace connection string with resource ID
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
+    // Remove containerRegistryLoginServer parameter since it's created in the module
     indexFileApiExists: indexFileApiExists
     indexFileApiDefinition: indexFileApiDefinition
-    indexFileApiIdentityResourceId: identities.outputs.indexFileApiIdentityResourceId
-    indexFileApiIdentityClientId: identities.outputs.indexFileApiIdentityClientId
     indexFileApiSecrets: indexFileApiSecrets
     indexFileApiEnvVars: indexFileApiEnvVars
     serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
+    abbrs: abbrs
+    resourceToken: resourceToken
   }
 }
 
@@ -211,19 +197,18 @@ module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = 
   params: {
     location: location
     tags: tags
-    // Replace connection string with resource ID
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
+    // Remove containerRegistryLoginServer parameter since it's created in the module
     summarizeVideoContentExists: summarizeVideoContentExists
     summarizeVideoContentDefinition: summarizeVideoContentDefinition
-    summarizeVideoContentIdentityResourceId: identities.outputs.summarizeVideoContentIdentityResourceId
-    summarizeVideoContentIdentityClientId: identities.outputs.summarizeVideoContentIdentityClientId
     summarizeVideoContentSecrets: summarizeVideoContentSecrets
     summarizeVideoContentEnvVars: summarizeVideoContentEnvVars
     serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
     storageAccountName: coreInfra.outputs.storageAccountName
     blobContainerName: coreInfra.outputs.blobContainerName
+    abbrs: abbrs
+    resourceToken: resourceToken
   }
 }
 
@@ -234,7 +219,6 @@ module aiServices './modules/ai-services.bicep' = {
     location: location
     tags: tags
     foundryHubName: '${abbrs.machineLearningServicesWorkspaces}${resourceToken}'
-    containerRegistryResourceId: coreInfra.outputs.containerRegistryResourceId
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     keyVaultResourceId: coreInfra.outputs.keyVaultResourceId
     keyVaultName: coreInfra.outputs.keyVaultName
@@ -244,10 +228,10 @@ module aiServices './modules/ai-services.bicep' = {
     gpt4oModelVersion: '2024-05-13'
     aiFoundryProjectName: '${abbrs.machineLearningServicesWorkspaces}${resourceToken}-project'
     aiFoundryProjectDisplayName: 'Video RAG Pipeline Project'
+    abbrs: abbrs
   }
 }
 
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = coreInfra.outputs.containerRegistryLoginServer
 output AZURE_KEY_VAULT_ENDPOINT string = coreInfra.outputs.keyVaultUri
 output AZURE_KEY_VAULT_NAME string = coreInfra.outputs.keyVaultName
 output AZURE_FOUNDRY_HUB_NAME string = aiServices.outputs.name

@@ -4,9 +4,6 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-@description('Principal IDs for managed identities that need access to the service bus')
-param managedIdentityPrincipalIds array = []
-
 @description('Resource token for unique resource naming')
 param resourceToken string
 
@@ -24,11 +21,6 @@ module serviceBus 'br/public:avm/res/service-bus/namespace:0.4.0' = {
       name: 'Standard'
       capacity: 1
     }
-    roleAssignments: [for principalId in managedIdentityPrincipalIds: {
-      principalId: principalId
-      principalType: 'ServicePrincipal'
-      roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0') // Service Bus Data Sender
-    }]
   }
 }
 
