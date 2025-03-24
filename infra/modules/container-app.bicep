@@ -47,7 +47,7 @@ module fetchLatestImage '../modules/fetch-container-image.bicep' = {
   }
 }
 
-// Process secrets with identity
+// Add managed identity to the secret records
 var secretsWithIdentity = [for secret in secrets.secrets: {
   name: secret.name
   keyVaultUrl: secret.keyVaultUrl
