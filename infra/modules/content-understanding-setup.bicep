@@ -20,6 +20,9 @@ param analyzerName string = 'video-content-analyzer'
 @description('The name of the Cognitive Services account')
 param cognitiveServicesAccountName string
 
+@description('API version for Content Understanding services')
+param apiVersion string = '2024-12-01-preview'
+
 var analyzerFilePath = '../schemas/content-analyzer.json'
 
 // Load analyzer definition from JSON file
@@ -88,6 +91,10 @@ resource contentUnderstandingSetup 'Microsoft.Resources/deploymentScripts@2020-1
         name: 'CONTENT_UNDERSTANDING_KEY'
         secureValue: contentUnderstandingKey
       }
+      {
+        name: 'API_VERSION'
+        value: apiVersion
+      }
     ]
     scriptContent: '''
       #!/bin/bash
@@ -102,7 +109,7 @@ resource contentUnderstandingSetup 'Microsoft.Resources/deploymentScripts@2020-1
       # Use the endpoint and key provided by parameters
       ENDPOINT=$CONTENT_UNDERSTANDING_ENDPOINT
       API_KEY=$CONTENT_UNDERSTANDING_KEY
-      API_VERSION="2024-12-01-preview"
+      API_VERSION=$API_VERSION
       
       # Check if analyzer already exists
       echo "Checking if analyzer $ANALYZER_NAME already exists..."
