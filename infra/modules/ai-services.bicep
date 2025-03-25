@@ -115,7 +115,6 @@ resource aiServiceConnection 'Microsoft.MachineLearningServices/workspaces/conne
   }
 }
 
-
 // Add Cognitive Services account of kind AIServices
 resource cognitiveServicesAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: cognitiveServicesAccountName
@@ -134,6 +133,8 @@ resource cognitiveServicesAccount 'Microsoft.CognitiveServices/accounts@2023-05-
   }
 }
 
+var contentUnderstandingEndpoint = 'https://${cognitiveServicesAccountName}.services.microsoft.com/'
+
 // Store the Cognitive Services primary key in Key Vault
 resource contentUnderstandingPrimarySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   name: '${keyVaultName}/content-understanding-key'
@@ -143,10 +144,10 @@ resource contentUnderstandingPrimarySecret 'Microsoft.KeyVault/vaults/secrets@20
 }
 
 // Store the Cognitive Services primary key in Key Vault
-resource contentUnderstandingEndpoint 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource contentUnderstandingEndpointSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   name: '${keyVaultName}/content-understanding-endpoint'
   properties: {
-    value: cognitiveServicesAccount.properties.endpoint
+    value: contentUnderstandingEndpoint
   }
 }
 
@@ -292,6 +293,7 @@ resource deployGpt4oModel 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
 output cognitiveServicesAccountName string = cognitiveServicesAccount.name
 output cognitiveServicesAccountId string = cognitiveServicesAccount.id
 output cognitiveServicesEndpoint string = cognitiveServicesAccount.properties.endpoint
+output contentUnderstandingEndpoint string = contentUnderstandingEndpoint
 output gpt4oDeploymentName string = gpt4oDeploymentName
 output aiProjectName string = aiProject.name
 output aiProjectId string = aiProject.id
