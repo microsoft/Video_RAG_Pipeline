@@ -1,0 +1,20 @@
+{
+    "config": {
+      "returnDetails": true,
+      "disableContentFiltering": true
+    },
+    "description": "Sample video analyzer",
+    "scenario": "videoShot",
+    "fieldSchema": {
+      "fields": {
+        "description": {
+          "type": "string",
+          "description": "Write a description of what occurs in the video segment and who the actors are as if it were a screenplay."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Categorize the description to determine the main topic and purpose of the video segment."
+        }
+      }
+    }
+  }

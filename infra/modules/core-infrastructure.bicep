@@ -38,34 +38,9 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5
   }
 }
 
-// Deploy Key Vault
-module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
-  name: 'keyvault'
-  params: {
-    name: keyVaultName
-    location: location
-    tags: tags
-    enableRbacAuthorization: true
-    secrets: [
-      {
-        name: 'storage-account-name'
-        value: storageAccount.outputs.name
-      }
-      {
-        name: 'storage-account-api-key'
-        value: listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2022-09-01').keys[0].value
-      }
-      {
-        name: 'container-name'
-        value: blobContainerName
-      }
-    ]
-  }
-}
-
 // Deploy Storage Account
 module storageAccount 'br/public:avm/res/storage/storage-account:0.6.0' = {
-  name: 'storage'
+  name: 'storage'  // Changed from storageAccountName to 'storage' to match proper module naming
   params: {
     name: storageAccountName
     location: location
@@ -78,15 +53,26 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.6.0' = {
   }
 }
 
-// Create Blob Container in Storage Account
+// Create Blob Container in Storage Account with proper parent/child relationship
 resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
-  name: '${abbrs.storageStorageAccounts}${resourceToken}/default/${blobContainerName}'
+  name: '${storageAccountName}/default/${blobContainerName}'
   properties: {
     publicAccess: 'None'
   }
   dependsOn: [
-    storageAccount // Ensure the Storage Account exists
+    storageAccount
   ]
+}
+
+// Deploy Key Vault without inline secrets
+module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
+  name: 'keyvault'
+  params: {
+    name: keyVaultName
+    location: location
+    tags: tags
+    enableRbacAuthorization: true
+  }
 }
 
 output logAnalyticsWorkspaceResourceId string = monitoring.outputs.logAnalyticsWorkspaceResourceId

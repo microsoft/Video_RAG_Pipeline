@@ -12,43 +12,6 @@
 
 You need to run ```uv pip lock > requirements.txt``` on each project before running azd up.
 
-##### Content Understanding
-
-Content understanding needs to have a schema and analyzer.
-This can be done through the API, but won't show up in the Online UI. THIS IS A KNOWN BUG.
-To configure through the API, use the following script:
-
-curl:
-
-```
-curl -X PUT -H "Content-Type: application/json" -d @data.json https://{AISERVICESURL}.services.ai.azure.com/contentunderstanding/analyzers/{NAME}?api-version=2024-12-01-preview
-```
-
-data.json:
-
-```
-{
-  "config": {
-    "returnDetails": true,
-    "disableContentFiltering": true
-  },
-  "description": "Sample video analyzer",
-  "scenario": "videoShot",
-  "fieldSchema": {
-    "fields": {
-      "description": {
-        "type": "string",
-        "description": "Write a description of what occurs in the video segment and who the actors are as if it were a screenplay."
-      },
-      "subject": {
-        "type": "string",
-        "description": "Categorize the description to determine the main topic and purpose of the video segment."
-      }
-    }
-  }
-}
-```
-
 ## Next Steps
 
 ### Provision infrastructure and deploy application code

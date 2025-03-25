@@ -36,6 +36,21 @@ module serviceBusInfra './modules/service-bus.bicep' = {
   }
 }
 
+// Module for Service Bus key secrets 
+module secrets './modules/secrets.bicep' = {
+  name: 'service-bus-key-secrets'
+  params: {
+    keyVaultName: keyVaultName
+    serviceBusNamespace: '${abbrs.serviceBusNamespaces}${resourceToken}'
+    blobContainerName: coreInfra.outputs.blobContainerName
+    storageAccountName: coreInfra.outputs.storageAccountName
+  }
+  dependsOn: [
+    serviceBusInfra
+  ]
+}
+
+
 var chunkVideoContentSecrets = {
   secrets : [
     {
@@ -229,8 +244,10 @@ module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
     resourceToken: resourceToken
     keyVaultName: coreInfra.outputs.keyVaultName
   }
+  dependsOn: [
+    secrets
+  ]
 }
-
 
 // First, deploy the app to get the identity ID
 module indexFileApiApp './app-modules/index-file-api.bicep' = {
@@ -247,6 +264,9 @@ module indexFileApiApp './app-modules/index-file-api.bicep' = {
     resourceToken: resourceToken
     keyVaultName: coreInfra.outputs.keyVaultName
   }
+  dependsOn: [
+    secrets
+  ]
 }
 
 // First, deploy the app to get the identity ID
@@ -266,6 +286,9 @@ module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = 
     resourceToken: resourceToken
     keyVaultName: coreInfra.outputs.keyVaultName
   }
+  dependsOn: [
+    secrets
+  ]
 }
 
 // Deploy the Foundry Hub from the module
@@ -289,6 +312,23 @@ module aiServices './modules/ai-services.bicep' = {
     azureOpenaiApiVersion: azureOpenaiApiVersion
   }
 }
+
+// Deploy Content Understanding Schema and Analyzer setup
+module contentUnderstandingSetup './modules/content-understanding-setup.bicep' = {
+  name: 'content-understanding-setup'
+  params: {
+    location: location
+    tags: tags
+    cognitiveServicesAccountName: aiServices.outputs.cognitiveServicesAccountName
+    contentUnderstandingEndpoint: aiServices.outputs.cognitiveServicesEndpoint
+    contentUnderstandingKey: aiServices.outputs.contentUnderstandingEndpoint
+    resourceToken: resourceToken
+    analyzerName: 'video-content-analyzer'
+  }
+}
+
+// Add new outputs for Content Understanding
+output AZURE_CONTENT_UNDERSTANDING_ANALYZER string = contentUnderstandingSetup.outputs.analyzerName
 
 output AZURE_KEY_VAULT_ENDPOINT string = coreInfra.outputs.keyVaultUri
 output AZURE_KEY_VAULT_NAME string = coreInfra.outputs.keyVaultName

@@ -27,58 +27,6 @@ module serviceBus 'br/public:avm/res/service-bus/namespace:0.4.0' = {
   }
 }
 
-resource serviceBusKeySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/service-bus-key'
-  properties: {
-    value: listKeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', '${abbrs.serviceBusNamespaces}${resourceToken}', 'RootManageSharedAccessKey'), '2021-11-01').primaryKey
-  }
-  dependsOn: [
-    serviceBus // Ensure Service Bus exists first
-  ]
-}
-
-resource serviceBusKeyName 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/service-bus-api-key-name'
-  properties: {
-    value: listKeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', '${abbrs.serviceBusNamespaces}${resourceToken}', 'RootManageSharedAccessKey'), '2021-11-01').keyName
-  }
-  dependsOn: [
-    serviceBus // Ensure Service Bus exists first
-  ]
-}
-
-// Store the Service Bus namespace name in Key Vault
-resource serviceBusNamespace 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/service-bus-namespace'
-  properties: {
-    value: '${abbrs.serviceBusNamespaces}${resourceToken}'
-  }
-  dependsOn: [
-    serviceBus // Ensure Service Bus exists first
-  ]
-}
-
-resource indexFileQueueName 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/index-file-queue-name'
-  properties: {
-    value: indexFileQueue.name
-  }
-}
-
-resource finalizeContentQueueName 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/finalize-content-queue-name'
-  properties: {
-    value: finalizeContentQueue.name
-  }
-}
-
-resource videoSummaryQueueName 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/video-summary-queue-name'
-  properties: {
-    value: videoSummaryQueue.name
-  }
-}
-
 // Create a queue for indexing files
 resource indexFileQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' = {
   name: '${abbrs.serviceBusNamespaces}${resourceToken}/index-file'
@@ -95,7 +43,7 @@ resource indexFileQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' = {
     enableExpress: false
   }
   dependsOn: [
-    serviceBus // Ensure the Service Bus namespace exists
+    serviceBus // Ensure the Service Bus namespace is fully provisioned
   ]
 }
 
@@ -115,7 +63,7 @@ resource finalizeContentQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01
     enableExpress: false
   }
   dependsOn: [
-    serviceBus // Ensure the Service Bus namespace exists
+    serviceBus // Ensure the Service Bus namespace is fully provisioned
   ]
 }
 
@@ -135,7 +83,7 @@ resource videoSummaryQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' =
     enableExpress: false
   }
   dependsOn: [
-    serviceBus // Ensure the Service Bus namespace exists
+    serviceBus // Ensure the Service Bus namespace is fully provisioned
   ]
 }
 
