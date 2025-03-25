@@ -53,14 +53,6 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.6.0' = {
   }
 }
 
-// Create Blob Service for the Storage Account first
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
-  name: '${storageAccountName}/default'
-  dependsOn: [
-    storageAccount
-  ]
-}
-
 // Create Blob Container in Storage Account with proper parent/child relationship
 resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
   name: '${storageAccountName}/default/${blobContainerName}'
@@ -68,7 +60,7 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
     publicAccess: 'None'
   }
   dependsOn: [
-    blobService // Depend on blob service instead of directly on storage account
+    storageAccount
   ]
 }
 
