@@ -8,6 +8,12 @@
       "location": {
         "value": "${AZURE_LOCATION}"
       },
+      "contentUnderstandingApiVersion": {
+        "value": "${CONTENT_UNDERSTANDING_API_VERSION=2023-05-01}"
+      },
+      "azureOpenaiApiVersion": {
+        "value": "${AZURE_OPENAI_API_VERSION=2023-05-15}"
+      },
       "chunkVideoContentExists": {
         "value": "${SERVICE_CHUNK_VIDEO_CONTENT_RESOURCE_EXISTS=false}"
       },

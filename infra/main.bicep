@@ -9,55 +9,11 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-@description('Service Bus API Key')
-@secure()
-param serviceBusApiKey string = ''
+@description('API version for Content Understanding API')
+param contentUnderstandingApiVersion string = '2023-05-01'
 
-@description('Service Bus API Key Name')
-param serviceBusApiKeyName string = ''
-
-// Setting default values for Content Understanding parameters
-@description('Content Understanding Endpoint')
-param contentUnderstandingEndpoint string = ''
-
-@description('Content Understanding Key')
-@secure()
-param contentUnderstandingKey string = ''
-
-@description('Content Understanding API Version')
-param contentUnderstandingApiVersion string = ''
-
-// Setting default values for Azure OpenAI parameters
-@description('Azure OpenAI Endpoint')
-param azureOpenAIEndpoint string = ''
-
-@description('Azure OpenAI Key')
-@secure()
-param azureOpenAIKey string = ''
-
-@description('Azure OpenAI API Version')
-param azureOpenAIApiVersion string = ''
-
-@description('Azure OpenAI Model Name')
-param azureOpenAIModelName string = ''
-
-// Setting default value for Storage Account API Key
-@description('Storage Account API Key')
-@secure()
-param storageAccountApiKey string = ''
-
-param chunkVideoContentExists bool
-@secure()
-param chunkVideoContentDefinition object
-param indexFileApiExists bool
-@secure()
-param indexFileApiDefinition object
-param summarizeVideoContentExists bool
-@secure()
-param summarizeVideoContentDefinition object
-
-@description('Id of the user or app to assign application roles')
-param principalId string
+@description('API version for Azure OpenAI API')
+param azureOpenaiApiVersion string = '2023-05-15'
 
 // Tags that should be applied to all resources.
 // 
@@ -81,29 +37,11 @@ module resources 'resources.bicep' = {
   params: {
     location: location
     tags: tags
-    principalId: principalId
-    chunkVideoContentExists: chunkVideoContentExists
-    chunkVideoContentDefinition: chunkVideoContentDefinition
-    indexFileApiExists: indexFileApiExists
-    indexFileApiDefinition: indexFileApiDefinition
-    summarizeVideoContentExists: summarizeVideoContentExists
-    summarizeVideoContentDefinition: summarizeVideoContentDefinition
-    // Pass the parameters to resources.bicep
-    serviceBusApiKey: serviceBusApiKey
-    serviceBusApiKeyName: serviceBusApiKeyName
-    contentUnderstandingEndpoint: contentUnderstandingEndpoint
-    contentUnderstandingKey: contentUnderstandingKey
     contentUnderstandingApiVersion: contentUnderstandingApiVersion
-    azureOpenAIEndpoint: azureOpenAIEndpoint
-    azureOpenAIKey: azureOpenAIKey
-    azureOpenAIApiVersion: azureOpenAIApiVersion
-    azureOpenAIModelName: azureOpenAIModelName
-    storageAccountApiKey: storageAccountApiKey
+    azureOpenaiApiVersion: azureOpenaiApiVersion
   }
 }
 
 output AZURE_KEY_VAULT_ENDPOINT string = resources.outputs.AZURE_KEY_VAULT_ENDPOINT
 output AZURE_KEY_VAULT_NAME string = resources.outputs.AZURE_KEY_VAULT_NAME
-output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = resources.outputs.AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID
-output AZURE_RESOURCE_INDEX_FILE_API_ID string = resources.outputs.AZURE_RESOURCE_INDEX_FILE_API_ID
-output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = resources.outputs.AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID
+

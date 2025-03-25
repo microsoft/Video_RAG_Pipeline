@@ -10,13 +10,6 @@ param applicationInsightsResourceId string
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
 
-@description('Whether the app exists')
-param indexFileApiExists bool
-
-@description('Definition of the app')
-@secure()
-param indexFileApiDefinition object
-
 @description('Secrets for the app')
 @secure()
 param indexFileApiSecrets object
@@ -35,6 +28,9 @@ param abbrs object
 
 @description('Name of the app')
 param name string = 'indexFileApi'
+
+@description('Key Vault name')
+param keyVaultName string
 
 // Create managed identities for the container apps
 module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
@@ -63,7 +59,6 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' =
     ]
   }
 }
-
 // Deploy Index File API Container App
 module indexFileApi '../modules/container-app.bicep' = {
   name: 'indexFileApiContainerApp'
@@ -74,8 +69,6 @@ module indexFileApi '../modules/container-app.bicep' = {
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
     containerRegistryLoginServer: containerRegistry.outputs.loginServer
-    exists: indexFileApiExists
-    appDefinition: indexFileApiDefinition
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
     secrets: indexFileApiSecrets
@@ -83,6 +76,7 @@ module indexFileApi '../modules/container-app.bicep' = {
     imageName: 'index-file-api'
   }
   dependsOn: [
+    keyVaultSecretUserRole    // Ensure Key Vault Secret User role exists
     indexFileQueue        // Ensure the index-file queue exists
   ]
 }
@@ -92,8 +86,18 @@ resource indexFileQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' exis
   name: '${serviceBusNamespaceName}/index-file'
 }
 
+// Grant Key Vault Secret User role to the identity
+module keyVaultSecretUserRole '../modules/roles/key-vault-secret-user-role.bicep' = {
+  name: '${name}-key-vault-secret-user-role'
+  params: {
+    keyVaultName: keyVaultName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
+}
+
 // Grant write access to the index file queue using the module
-module indexSenderRole '../modules/roles/service-bus-sender-role.bicep' = if (indexFileApiExists) {
+module indexSenderRole '../modules/roles/service-bus-sender-role.bicep' = {
   name: '${name}-index-sender-role'
   params: {
     serviceBusNamespaceName: serviceBusNamespaceName

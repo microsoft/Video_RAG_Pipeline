@@ -4,14 +4,16 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-@description('ID of the user or app to assign access policies for Key Vault')
-param principalId string
-
 @description('Name of the blob container to create in the storage account')
 param blobContainerName string = 'videos'
 
+@description('Name of the Key Vault')
+param keyVaultName string
+
 var abbrs = loadJsonContent('../abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
+
+var storageAccountName = '${abbrs.storageStorageAccounts}${resourceToken}'
 
 // Monitor application with Azure Monitor
 module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
@@ -36,26 +38,28 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5
   }
 }
 
-// Create access policies for all identities
-var accessPolicies = [
-  {
-    objectId: principalId
-    permissions: {
-      secrets: [ 'get', 'list' ]
-    }
-  }
-]
-
 // Deploy Key Vault
 module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
   name: 'keyvault'
   params: {
-    name: '${abbrs.keyVaultVaults}${resourceToken}'
+    name: keyVaultName
     location: location
     tags: tags
-    enableRbacAuthorization: false
-    accessPolicies: accessPolicies
-    secrets: []
+    enableRbacAuthorization: true
+    secrets: [
+      {
+        name: 'storage-account-name'
+        value: storageAccount.outputs.name
+      }
+      {
+        name: 'storage-account-api-key'
+        value: listKeys(resourceId('Microsoft.Storage/storageAccounts', storageAccountName), '2022-09-01').keys[0].value
+      }
+      {
+        name: 'container-name'
+        value: blobContainerName
+      }
+    ]
   }
 }
 
@@ -63,7 +67,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
 module storageAccount 'br/public:avm/res/storage/storage-account:0.6.0' = {
   name: 'storage'
   params: {
-    name: '${abbrs.storageStorageAccounts}${resourceToken}'
+    name: storageAccountName
     location: location
     tags: tags
     kind: 'StorageV2'

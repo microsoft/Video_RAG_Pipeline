@@ -4,54 +4,15 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-param chunkVideoContentExists bool
-@secure()
-param chunkVideoContentDefinition object
-param indexFileApiExists bool
-@secure()
-param indexFileApiDefinition object
-param summarizeVideoContentExists bool
-@secure()
-param summarizeVideoContentDefinition object
+@description('API version for Content Understanding API')
+param contentUnderstandingApiVersion string = '2023-05-01'
 
-@description('Id of the user or app to assign application roles')
-param principalId string
-
-// Parameters added for service bus secrets
-@secure()
-@description('Service Bus API Key')
-param serviceBusApiKey string = ''
-@description('Service Bus API Key Name')
-param serviceBusApiKeyName string = ''
-
-// Parameters added for content understanding secrets
-@description('Content Understanding Endpoint')
-param contentUnderstandingEndpoint string = ''
-@secure()
-@description('Content Understanding Key')
-param contentUnderstandingKey string = ''
-@description('Content Understanding API Version')
-param contentUnderstandingApiVersion string = ''
-
-// Parameters added for Azure OpenAI secrets
-@description('Azure OpenAI Endpoint')
-param azureOpenAIEndpoint string = ''
-@secure()
-@description('Azure OpenAI Key')
-param azureOpenAIKey string = ''
-@description('Azure OpenAI API Version')
-param azureOpenAIApiVersion string = ''
-@description('Azure OpenAI Model Name')
-param azureOpenAIModelName string = ''
-
-// Parameter added for Storage Account API Key
-@secure()
-@description('Storage Account API Key')
-param storageAccountApiKey string = ''
+@description('API version for Azure OpenAI API')
+param azureOpenaiApiVersion string = '2023-05-15'
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
-
+var keyVaultName = '${abbrs.keyVaultVaults}${resourceToken}'
 
 // Deploy core infrastructure (monitoring, container registry, container apps environment, key vault)
 module coreInfra './modules/core-infrastructure.bicep' = {
@@ -59,7 +20,7 @@ module coreInfra './modules/core-infrastructure.bicep' = {
   params: {
     location: location
     tags: tags
-    principalId: principalId
+    keyVaultName: keyVaultName
   }
 }
 
@@ -71,47 +32,143 @@ module serviceBusInfra './modules/service-bus.bicep' = {
     tags: tags
     resourceToken: resourceToken
     abbrs: abbrs
+    keyVaultName: coreInfra.outputs.keyVaultName
   }
 }
 
-// Define secrets by group
-var serviceBusSecrets = [
-  { name: 'service-bus-namespace', value: serviceBusInfra.outputs.serviceBusEndpoint }
-  { name: 'service-bus-api-key', value: !empty(serviceBusApiKey) ? serviceBusApiKey : 'placeholder-value' }
-  { name: 'service-bus-api-key-name', value: !empty(serviceBusApiKeyName) ? serviceBusApiKeyName : 'placeholder-value' }
-  { name: 'index-file-queue', value: serviceBusInfra.outputs.indexFileQueueName }
-  { name: 'finalize-content-queue', value: serviceBusInfra.outputs.finalizeContentQueueName }
-  { name: 'video-summary-queue', value: serviceBusInfra.outputs.videoSummaryQueueName }
-]
-
-var contentSecrets = [
-  { name: 'content-understanding-endpoint', value: !empty(contentUnderstandingEndpoint) ? contentUnderstandingEndpoint : 'placeholder-value' }
-  { name: 'content-understanding-key', value: !empty(contentUnderstandingKey) ? contentUnderstandingKey : 'placeholder-value' }
-  { name: 'content-understanding-api-versio', value: !empty(contentUnderstandingApiVersion) ? contentUnderstandingApiVersion : 'placeholder-value' }
-]
-
-var openAISecrets = [
-  { name: 'azure-openai-endpoint', value: !empty(azureOpenAIEndpoint) ? azureOpenAIEndpoint : 'placeholder-value' }
-  { name: 'azure-openai-key', value: !empty(azureOpenAIKey) ? azureOpenAIKey : 'placeholder-value' }
-  { name: 'azure-openai-api-version', value: !empty(azureOpenAIApiVersion) ? azureOpenAIApiVersion : 'placeholder-value' }
-  { name: 'azure-openai-model-name', value: !empty(azureOpenAIModelName) ? azureOpenAIModelName : 'placeholder-value' }
-]
-
-var storageSecrets = [
-  { name: 'storage-account-api-key', value: !empty(storageAccountApiKey) ? storageAccountApiKey : 'placeholder-value' }
-  { name: 'storage-account-name', value: coreInfra.outputs.storageAccountName }
-  { name: 'storage-container-name', value: coreInfra.outputs.blobContainerName }
-]
-
-// Combine secrets by service
 var chunkVideoContentSecrets = {
-  secrets : concat(serviceBusSecrets, contentSecrets, storageSecrets)
+  secrets : [
+    {
+      name: 'service-bus-namespace'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-namespace'
+    }
+    {
+      name: 'service-bus-api-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-key'
+    }
+    {
+      name: 'service-bus-api-key-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-api-key-name'
+    }
+    {
+      name: 'index-file-queue'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/index-file-queue-name'
+    }
+    {
+      name: 'finalize-content-queue'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/finalize-content-queue-name'
+    }
+    {
+      name: 'content-understanding-endpoint'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/content-understanding-endpoint'
+    }
+    {
+      name: 'content-understanding-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/content-understanding-key'
+    }
+    {
+      name: 'content-understanding-api-version'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/content-understanding-api-version'
+    }
+    {
+      name: 'storage-account-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/storage-account-name'
+    }
+    {
+      name: 'storage-container-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/container-name'
+    }
+    {
+      name: 'storage-account-api-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/storage-account-api-key'
+    }
+  ]
 }
+
 var indexFileApiSecrets = {
-  secrets : serviceBusSecrets
+  secrets : [
+    {
+      name: 'service-bus-namespace'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-namespace'
+    }
+    {
+      name: 'service-bus-api-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-key'
+    }
+    {
+      name: 'service-bus-api-key-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-api-key-name'
+    }
+    {
+      name: 'index-file-queue'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/index-file-queue-name'
+    }
+  ]
 }
+
 var summarizeVideoContentSecrets = {
-  secrets : concat(serviceBusSecrets, openAISecrets, contentSecrets, storageSecrets)
+  secrets : [
+    {
+      name: 'service-bus-namespace'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-namespace'
+    }
+    {
+      name: 'service-bus-api-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-key'
+    }
+    {
+      name: 'service-bus-api-key-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/service-bus-api-key-name'
+    }
+    {
+      name: 'finalize-content-queue'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/finalize-content-queue-name'
+    }
+    {
+      name: 'video-summary-queue'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/video-summary-queue-name'
+    }
+    {
+      name: 'azure-openai-endpoint'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/open-ai-endpoint'
+    }
+    {
+      name: 'azure-openai-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/open-ai-key'
+    }
+    {
+      name: 'azure-openai-api-version'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/azure-openai-api-version'
+    }
+    {
+      name: 'azure-openai-model-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/open-ai-deployment-name'
+    }
+    {
+      name: 'content-understanding-endpoint'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/content-understanding-endpoint'
+    }
+    {
+      name: 'content-understanding-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/content-understanding-key'
+    }
+    {
+      name: 'content-understanding-api-version'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/content-understanding-api-version'
+    }
+    {
+      name: 'storage-account-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/storage-account-name'
+    }
+    {
+      name: 'storage-container-name'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/container-name'
+    }
+    {
+      name: 'storage-account-api-key'
+      keyVaultUrl: '${coreInfra.outputs.keyVaultUri}secrets/storage-account-api-key'
+    }
+  ]
 }
 
 // Define environment variables by service
@@ -123,7 +180,7 @@ var chunkVideoContentEnvVars = [
   { name: 'FINALIZE_CONTENT_QUEUE', secretRef: 'finalize-content-queue' }
   { name: 'CONTENT_UNDERSTANDING_ENDPOINT', secretRef: 'content-understanding-endpoint' }
   { name: 'CONTENT_UNDERSTANDING_KEY', secretRef: 'content-understanding-key' }
-  { name: 'CONTENT_UNDERSTANDING_API_VERSION', secretRef: 'content-understanding-api-versio' }
+  { name: 'CONTENT_UNDERSTANDING_API_VERSION', secretRef: 'content-understanding-api-version' }
   { name: 'STORAGE_ACCOUNT_NAME', secretRef: 'storage-account-name' }
   { name: 'STORAGE_CONTAINER_NAME', secretRef: 'storage-container-name' }
   { name: 'STORAGE_ACCOUNT_API_KEY', secretRef: 'storage-account-api-key' }
@@ -148,13 +205,14 @@ var summarizeVideoContentEnvVars = [
   { name: 'AZURE_OPENAI_MODEL_NAME', secretRef: 'azure-openai-model-name' }
   { name: 'CONTENT_UNDERSTANDING_ENDPOINT', secretRef: 'content-understanding-endpoint' }
   { name: 'CONTENT_UNDERSTANDING_KEY', secretRef: 'content-understanding-key' }
-  { name: 'CONTENT_UNDERSTANDING_API_VERSION', secretRef: 'content-understanding-api-versio' }
+  { name: 'CONTENT_UNDERSTANDING_API_VERSION', secretRef: 'content-understanding-api-version' }
   { name: 'STORAGE_ACCOUNT_NAME', secretRef: 'storage-account-name' }
   { name: 'STORAGE_CONTAINER_NAME', secretRef: 'storage-container-name' }
   { name: 'STORAGE_ACCOUNT_API_KEY', secretRef: 'storage-account-api-key' }
 ]
 
-// Deploy individual container apps
+// Deploy individual container apps - we need to deploy in two steps
+// First, deploy the app to get the identity ID
 module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
   name: 'chunk-video-content-app'
   params: {
@@ -162,8 +220,6 @@ module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
     tags: tags
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
-    chunkVideoContentExists: chunkVideoContentExists
-    chunkVideoContentDefinition: chunkVideoContentDefinition
     chunkVideoContentSecrets: chunkVideoContentSecrets
     chunkVideoContentEnvVars: chunkVideoContentEnvVars
     serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
@@ -171,9 +227,12 @@ module chunkVideoContentApp './app-modules/chunk-video-content.bicep' = {
     blobContainerName: coreInfra.outputs.blobContainerName
     abbrs: abbrs
     resourceToken: resourceToken
+    keyVaultName: coreInfra.outputs.keyVaultName
   }
 }
 
+
+// First, deploy the app to get the identity ID
 module indexFileApiApp './app-modules/index-file-api.bicep' = {
   name: 'index-file-api-app'
   params: {
@@ -181,17 +240,16 @@ module indexFileApiApp './app-modules/index-file-api.bicep' = {
     tags: tags
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
-    // Remove containerRegistryLoginServer parameter since it's created in the module
-    indexFileApiExists: indexFileApiExists
-    indexFileApiDefinition: indexFileApiDefinition
     indexFileApiSecrets: indexFileApiSecrets
     indexFileApiEnvVars: indexFileApiEnvVars
     serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
     abbrs: abbrs
     resourceToken: resourceToken
+    keyVaultName: coreInfra.outputs.keyVaultName
   }
 }
 
+// First, deploy the app to get the identity ID
 module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = {
   name: 'summarize-video-content-app'
   params: {
@@ -199,9 +257,6 @@ module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = 
     tags: tags
     applicationInsightsResourceId: coreInfra.outputs.applicationInsightsResourceId
     containerAppsEnvironmentResourceId: coreInfra.outputs.containerAppsEnvironmentResourceId
-    // Remove containerRegistryLoginServer parameter since it's created in the module
-    summarizeVideoContentExists: summarizeVideoContentExists
-    summarizeVideoContentDefinition: summarizeVideoContentDefinition
     summarizeVideoContentSecrets: summarizeVideoContentSecrets
     summarizeVideoContentEnvVars: summarizeVideoContentEnvVars
     serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
@@ -209,6 +264,7 @@ module summarizeVideoContentApp './app-modules/summarize-video-content.bicep' = 
     blobContainerName: coreInfra.outputs.blobContainerName
     abbrs: abbrs
     resourceToken: resourceToken
+    keyVaultName: coreInfra.outputs.keyVaultName
   }
 }
 
@@ -229,6 +285,8 @@ module aiServices './modules/ai-services.bicep' = {
     aiFoundryProjectName: '${abbrs.machineLearningServicesWorkspaces}${resourceToken}-project'
     aiFoundryProjectDisplayName: 'Video RAG Pipeline Project'
     abbrs: abbrs
+    contentUnderstandingApiVersion: contentUnderstandingApiVersion
+    azureOpenaiApiVersion: azureOpenaiApiVersion
   }
 }
 
@@ -244,9 +302,6 @@ output AZURE_COGNITIVE_SERVICES_NAME string = aiServices.outputs.cognitiveServic
 output AZURE_COGNITIVE_SERVICES_ID string = aiServices.outputs.cognitiveServicesAccountId
 output AZURE_COGNITIVE_SERVICES_ENDPOINT string = aiServices.outputs.cognitiveServicesEndpoint
 output AZURE_GPT4O_DEPLOYMENT_NAME string = aiServices.outputs.gpt4oDeploymentName
-output AZURE_RESOURCE_CHUNK_VIDEO_CONTENT_ID string = chunkVideoContentApp.outputs.resourceId
-output AZURE_RESOURCE_INDEX_FILE_API_ID string = indexFileApiApp.outputs.resourceId
-output AZURE_RESOURCE_SUMMARIZE_VIDEO_CONTENT_ID string = summarizeVideoContentApp.outputs.resourceId
 output AZURE_SERVICE_BUS_NAMESPACE string = serviceBusInfra.outputs.serviceBusNamespaceName
 output AZURE_SERVICE_BUS_ENDPOINT string = serviceBusInfra.outputs.serviceBusEndpoint
 output AZURE_INDEX_FILE_QUEUE string = serviceBusInfra.outputs.indexFileQueueName
