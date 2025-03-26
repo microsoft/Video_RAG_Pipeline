@@ -10,9 +10,6 @@ param resourceToken string
 @description('Name prefix abbreviations')
 param abbrs object
 
-@description('The name of the key vault to store secrets')
-param keyVaultName string
-
 // Deploy Service Bus Namespace
 module serviceBus 'br/public:avm/res/service-bus/namespace:0.4.0' = {
   name: 'service-bus'

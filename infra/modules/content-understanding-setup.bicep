@@ -23,7 +23,7 @@ param cognitiveServicesAccountName string
 @description('API version for Content Understanding services')
 param apiVersion string = '2024-12-01-preview'
 
-var analyzerFilePath = '../schemas/content-analyzer.json'
+var analyzerFilePath = 'schemas/content-analyzer.json'
 
 // Load analyzer definition from JSON file
 var analyzerDefinition = loadJsonContent(analyzerFilePath)

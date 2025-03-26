@@ -41,7 +41,3 @@ module resources 'resources.bicep' = {
     azureOpenaiApiVersion: azureOpenaiApiVersion
   }
 }
-
-output AZURE_KEY_VAULT_ENDPOINT string = resources.outputs.AZURE_KEY_VAULT_ENDPOINT
-output AZURE_KEY_VAULT_NAME string = resources.outputs.AZURE_KEY_VAULT_NAME
-
