@@ -1,4 +1,5 @@
 # Video RAG Pipeline
+![Latest Build](https://github.com/microsoft/Video_RAG_Pipeline/actions/workflows/ci-cd.yml/badge.svg)
 
 ## Project Summary
 The Video RAG Pipeline is a reactive video processing system built from three interdependent services:
