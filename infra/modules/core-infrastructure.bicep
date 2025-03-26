@@ -7,9 +7,6 @@ param tags object = {}
 @description('Name of the blob container to create in the storage account')
 param blobContainerName string = 'videos'
 
-@description('Name of the Key Vault')
-param keyVaultName string
-
 var abbrs = loadJsonContent('../abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 
@@ -64,23 +61,9 @@ resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/container
   ]
 }
 
-// Deploy Key Vault without inline secrets
-module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
-  name: 'keyvault'
-  params: {
-    name: keyVaultName
-    location: location
-    tags: tags
-    enableRbacAuthorization: true
-  }
-}
-
 output logAnalyticsWorkspaceResourceId string = monitoring.outputs.logAnalyticsWorkspaceResourceId
 output applicationInsightsResourceId string = monitoring.outputs.applicationInsightsResourceId
 output containerAppsEnvironmentResourceId string = containerAppsEnvironment.outputs.resourceId
-output keyVaultResourceId string = keyVault.outputs.resourceId
-output keyVaultUri string = keyVault.outputs.uri
-output keyVaultName string = keyVault.outputs.name
 output storageAccountResourceId string = storageAccount.outputs.resourceId
 output storageAccountName string = storageAccount.outputs.name
 output blobContainerName string = blobContainerName

@@ -39,7 +39,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
 }
 
 // Fetch latest image
-module fetchLatestImage '../modules/fetch-container-image.bicep' = {
+module fetchLatestImage 'fetch-container-image.bicep' = {
   name: '${name}-fetch-image'
   params: {
     exists: false

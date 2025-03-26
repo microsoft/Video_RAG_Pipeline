@@ -10,12 +10,6 @@ param foundryHubName string = 'foundryHub'
 @description('Resource ID of the Application Insights instance')
 param applicationInsightsResourceId string
 
-@description('Resource ID of the Key Vault')
-param keyVaultResourceId string
-
-@description('Name of the Key Vault for storing secrets')
-param keyVaultName string
-
 @description('Name of the Cognitive Services account')
 param cognitiveServicesAccountName string = foundryHubName
 
@@ -40,11 +34,7 @@ param aiFoundryProjectDisplayName string = 'Video RAG AI Project'
 @description('Abbreviations to use for resource naming')
 param abbrs object
 
-@description('API version for Content Understanding API')
-param contentUnderstandingApiVersion string = '2023-05-01'
-
-@description('API version for Azure OpenAI API')
-param azureOpenaiApiVersion string = '2023-05-15'
+var keyVaultName = '${abbrs.keyVaultVaults}${resourceToken}-ai'
 
 // Create a dedicated container registry for AI services
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
@@ -71,7 +61,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview'
     publicNetworkAccess: 'Enabled'
     containerRegistry: containerRegistry.outputs.resourceId
     applicationInsights: applicationInsightsResourceId
-    keyVault: keyVaultResourceId
+    keyVault: keyVault.outputs.resourceId
   }
   tags: tags
 }
@@ -133,61 +123,7 @@ resource cognitiveServicesAccount 'Microsoft.CognitiveServices/accounts@2023-05-
   }
 }
 
-var contentUnderstandingEndpoint = 'https://${cognitiveServicesAccountName}.services.microsoft.com/'
-
-// Store the Cognitive Services primary key in Key Vault
-resource contentUnderstandingPrimarySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/content-understanding-key'
-  properties: {
-    value: cognitiveServicesAccount.listKeys().key1
-  }
-}
-
-// Store the Cognitive Services primary key in Key Vault
-resource contentUnderstandingEndpointSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/content-understanding-endpoint'
-  properties: {
-    value: contentUnderstandingEndpoint
-  }
-}
-
-// Store the Cognitive Services primary key in Key Vault
-resource openAiEndpoint 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/open-ai-endpoint'
-  properties: {
-    value: cognitiveServicesAccount.properties.endpoint
-  }
-}
-
-// Store the Content Understanding API version in Key Vault
-resource contentUnderstandingApiVersionSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/content-understanding-api-version'
-  properties: {
-    value: contentUnderstandingApiVersion
-  }
-}
-
-// Store the Azure OpenAI API version in Key Vault
-resource azureOpenAiApiVersionSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/azure-openai-api-version'
-  properties: {
-    value: azureOpenaiApiVersion
-  }
-}
-
-resource openAiPrimarySecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/open-ai-key'
-  properties: {
-    value: cognitiveServicesAccount.listKeys().key1
-  }
-}
-
-resource openAiDeploymentName 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${keyVaultName}/open-ai-deployment-name'
-  properties: {
-    value: gpt4oDeploymentName
-  }
-}
+var contentUnderstandingEndpoint = 'https://${cognitiveServicesAccountName}.services.ai.azure.com/'
 
 // User-assigned managed identity for the deployment script
 resource deploymentScriptIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -287,6 +223,30 @@ resource deployGpt4oModel 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
         echo "Deployment completed successfully."
       fi
     '''
+  }
+}
+
+module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
+  name: keyVaultName
+  params: {
+    name: keyVaultName
+    location: location
+    tags: tags
+    enableRbacAuthorization: true
+  }
+}
+
+// Deploy Content Understanding Schema and Analyzer setup
+module contentUnderstandingSetup 'content-understanding-setup.bicep' = {
+  name: 'content-understanding-setup'
+  params: {
+    location: location
+    tags: tags
+    cognitiveServicesAccountName: cognitiveServicesAccount.name
+    contentUnderstandingEndpoint: contentUnderstandingEndpoint
+    contentUnderstandingKey: cognitiveServicesAccount.listKeys().key1
+    resourceToken: resourceToken
+    analyzerName: 'video-content-analyzer'
   }
 }
 

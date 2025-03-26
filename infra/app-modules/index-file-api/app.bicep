@@ -10,13 +10,6 @@ param applicationInsightsResourceId string
 @description('Resource ID of the Container App Environment')
 param containerAppsEnvironmentResourceId string
 
-@description('Secrets for the app')
-@secure()
-param indexFileApiSecrets object
-
-@description('Environment variables for the app')
-param indexFileApiEnvVars array
-
 @description('Service Bus namespace name')
 param serviceBusNamespaceName string
 
@@ -29,8 +22,13 @@ param abbrs object
 @description('Name of the app')
 param name string = 'indexFileApi'
 
-@description('Key Vault name')
-param keyVaultName string
+@description('Storage account name')
+param storageAccountNameParam string
+
+@description('Blob container name') 
+param blobContainerNameParam string
+
+var keyVaultName = '${abbrs.keyVaultVaults}${resourceToken}-ifa' // shortened index-file-api because of a length limit
 
 // Create managed identities for the container apps
 module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
@@ -60,7 +58,7 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' =
   }
 }
 // Deploy Index File API Container App
-module indexFileApi '../modules/container-app.bicep' = {
+module indexFileApi '../container-app.bicep' = {
   name: 'indexFileApiContainerApp'
   params: {
     name: name
@@ -71,8 +69,42 @@ module indexFileApi '../modules/container-app.bicep' = {
     containerRegistryLoginServer: containerRegistry.outputs.loginServer
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
-    secrets: indexFileApiSecrets
-    envVars: indexFileApiEnvVars
+    secrets: {
+      secrets: [
+        {
+          name: 'service-bus-namespace'
+          keyVaultUrl: indexFileApiSecrets.outputs.serviceBusNamespaceSecretUri
+        }
+        {
+          name: 'service-bus-api-key'
+          keyVaultUrl: indexFileApiSecrets.outputs.serviceBusKeySecretUri
+        }
+        {
+          name: 'index-file-queue'
+          keyVaultUrl: indexFileApiSecrets.outputs.indexFileQueueNameSecretUri
+        }
+        {
+          name: 'storage-account-name'
+          keyVaultUrl: indexFileApiSecrets.outputs.storageAccountNameSecretUri
+        }
+        {
+          name: 'storage-account-key'
+          keyVaultUrl: indexFileApiSecrets.outputs.storageAccountKeySecretUri
+        }
+        {
+          name: 'container-name'
+          keyVaultUrl: indexFileApiSecrets.outputs.containerNameSecretUri
+        }
+      ]
+    }
+    envVars: [
+      { name: 'SERVICE_BUS_NAMESPACE', secretRef: 'service-bus-namespace' }
+      { name: 'SERVICE_BUS_API_KEY', secretRef: 'service-bus-api-key' }
+      { name: 'INDEX_FILE_QUEUE', secretRef: 'index-file-queue' }
+      { name: 'STORAGE_ACCOUNT_NAME', secretRef: 'storage-account-name' }
+      { name: 'STORAGE_ACCOUNT_KEY', secretRef: 'storage-account-key' }
+      { name: 'CONTAINER_NAME', secretRef: 'container-name' }
+    ]
     imageName: 'index-file-api'
   }
   dependsOn: [
@@ -87,17 +119,20 @@ resource indexFileQueue 'Microsoft.ServiceBus/namespaces/queues@2021-11-01' exis
 }
 
 // Grant Key Vault Secret User role to the identity
-module keyVaultSecretUserRole '../modules/roles/key-vault-secret-user-role.bicep' = {
+module keyVaultSecretUserRole '../roles/key-vault-secret-user-role.bicep' = {
   name: '${name}-key-vault-secret-user-role'
   params: {
     keyVaultName: keyVaultName
     principalId: identity.outputs.principalId
     appName: name
   }
+  dependsOn:[
+    keyVault
+  ]
 }
 
 // Grant write access to the index file queue using the module
-module indexSenderRole '../modules/roles/service-bus-sender-role.bicep' = {
+module indexSenderRole '../roles/service-bus-sender-role.bicep' = {
   name: '${name}-index-sender-role'
   params: {
     serviceBusNamespaceName: serviceBusNamespaceName
@@ -108,6 +143,31 @@ module indexSenderRole '../modules/roles/service-bus-sender-role.bicep' = {
   dependsOn: [
     indexFileQueue
     indexFileApi
+  ]
+}
+
+// Deploy Key Vault without inline secrets
+module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
+  name: keyVaultName
+  params: {
+    name: keyVaultName
+    location: location
+    tags: tags
+    enableRbacAuthorization: true
+  }
+}
+
+// Create secrets for index-file-api in a dedicated module
+module indexFileApiSecrets 'secrets.bicep' = {
+  name: 'indexFileApiSecrets'
+  params: {
+    keyVaultName: keyVaultName
+    serviceBusNamespace: serviceBusNamespaceName
+    storageAccountName: storageAccountNameParam
+    blobContainerName: blobContainerNameParam
+  }
+  dependsOn: [
+    keyVault
   ]
 }
 
