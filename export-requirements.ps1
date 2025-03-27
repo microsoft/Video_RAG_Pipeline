@@ -32,7 +32,6 @@ foreach ($dir in $projectDirs) {
         # Verify the file was created and display its contents
         if (Test-Path requirements.txt) {
             Write-Host "Successfully created requirements.txt"
-            Write-Host "First 10 lines of requirements.txt:"
             Get-Content requirements.txt -TotalCount 10
         } else {
             Write-Host "Failed to create requirements.txt" -ForegroundColor Red
