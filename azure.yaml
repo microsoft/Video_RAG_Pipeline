@@ -3,6 +3,10 @@
 name: video-rag-pipeline
 metadata:
     template: azd-init@1.12.0
+hooks:
+  preup:
+    shell: pwsh
+    run: ./export-requirements.ps1
 services:
     chunk-video-content:
         project: chunk_video_content
