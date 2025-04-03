@@ -5,8 +5,8 @@ metadata:
     template: azd-init@1.12.0
 hooks:
   preup:
-    shell: pwsh
-    run: ./export-requirements.ps1
+    shell: sh
+    run: ./export-requirements.sh
 services:
     chunk-video-content:
         project: chunk_video_content
