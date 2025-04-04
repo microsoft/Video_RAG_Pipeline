@@ -24,6 +24,18 @@ module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
   }
 }
 
+// Create container registry for this app with direct role assignment
+module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
+  name: 'chunk-video-content-registry'
+  params: {
+    name: '${abbrs.containerRegistryRegistries}${resourceToken}'
+    location: location
+    tags: tags
+    acrAdminUserEnabled: true
+    publicNetworkAccess: 'Enabled'
+  }
+}
+
 // Container apps environment
 module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5' = {
   name: 'container-apps-environment'
@@ -68,3 +80,6 @@ output storageAccountResourceId string = storageAccount.outputs.resourceId
 output storageAccountName string = storageAccount.outputs.name
 output blobContainerName string = blobContainerName
 output blobEndpoint string = storageAccount.outputs.primaryBlobEndpoint
+output containerRegistryLoginServer string = containerRegistry.outputs.loginServer
+output containerRegistryName string = containerRegistry.outputs.name
+output containerRegistryResourceId string = containerRegistry.outputs.resourceId

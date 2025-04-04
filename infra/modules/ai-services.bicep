@@ -37,23 +37,18 @@ param aiFoundryProjectName string = '${foundryHubName}-project'
 @description('Display name for the AI Foundry Project')
 param aiFoundryProjectDisplayName string = 'Video RAG AI Project'
 
+@description('Resource ID of the Container Registry')
+param containerRegistryResourceId string
+
 @description('Abbreviations to use for resource naming')
 param abbrs object
 
+@description('API version for Azure OpenAI API')
+param ApiVersion string = '2023-05-15'
+
 var keyVaultName = '${abbrs.keyVaultVaults}${resourceToken}-ai'
 
-// Create a dedicated container registry for AI services
-module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
-  name: 'ai-services-registry'
-  params: {
-    name: '${abbrs.containerRegistryRegistries}ai${resourceToken}'
-    location: location
-    tags: tags
-    acrAdminUserEnabled: true
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
+// Create the AI Foundry Hub
 resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview' = {
   name: foundryHubName
   location: location
@@ -65,7 +60,7 @@ resource aiHub 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview'
     description: 'Azure AI Foundry Hub'
     friendlyName: 'AI Foundry Hub'
     publicNetworkAccess: 'Enabled'
-    containerRegistry: containerRegistry.outputs.resourceId
+    containerRegistry: containerRegistryResourceId
     applicationInsights: applicationInsightsResourceId
     keyVault: keyVault.outputs.resourceId
   }
@@ -104,7 +99,7 @@ resource aiServiceConnection 'Microsoft.MachineLearningServices/workspaces/conne
     metadata: {
       resourceName: cognitiveServicesAccount.name
       ApiType: 'ApiKey'
-      ApiVersion: '2023-05-15'
+      ApiVersion: ApiVersion
       Kind: 'OpenAI'
       AuthType: 'ApiKey'
     }
@@ -187,4 +182,3 @@ output aiServiceConnectionId string = aiServiceConnection.id
 output resourceId string = aiHub.id
 output name string = aiHub.name
 output principalId string = aiHub.identity.principalId
-output containerRegistryName string = containerRegistry.outputs.name
