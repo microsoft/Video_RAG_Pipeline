@@ -1,16 +1,10 @@
 # Next Steps after `azd init`
 
 ## Table of Contents
-
-1. [Prerequisite Deployments](#prerequisite-deployments)
 1. [Next Steps](#next-steps)
 1. [What was added](#what-was-added)
 1. [Billing](#billing)
 1. [Troubleshooting](#troubleshooting)
-
-## Prerequisite Deployments
-
-You need to run ```uv pip lock > requirements.txt``` on each project before running azd up.
 
 ## Next Steps
 
