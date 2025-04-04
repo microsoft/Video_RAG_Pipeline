@@ -25,6 +25,12 @@ param cognitiveServicesAccountName string = ''
 @description('Resource token for unique resource naming')
 param resourceToken string
 
+@description('Container Registry Login Server')
+param containerRegistryLoginServer string
+
+@description('Container Registry Name')
+param containerRegistryName string
+
 @description('Abbreviations to use for resource naming')
 param abbrs object
 
@@ -39,25 +45,6 @@ module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1
   params: {
     name: '${abbrs.managedIdentityUserAssignedIdentities}chunkVideoContent-${resourceToken}'
     location: location
-  }
-}
-
-// Create container registry for this app with direct role assignment
-module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
-  name: 'chunk-video-content-registry'
-  params: {
-    name: '${abbrs.containerRegistryRegistries}chunk${resourceToken}'
-    location: location
-    tags: tags
-    acrAdminUserEnabled: true
-    publicNetworkAccess: 'Enabled'
-    roleAssignments: [
-      {
-        principalId: identity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
-      }
-    ]
   }
 }
 
@@ -139,6 +126,16 @@ module indexSenderRole '../roles/service-bus-sender-role.bicep' = {
   ]
 }
 
+// Grant AcrPull role to the identity on the container registry
+module acrPullRole '../roles/acr-pull-role.bicep' = {
+  name: '${name}-acr-pull-role'
+  params: {
+    containerRegistryName: containerRegistryName
+    principalId: identity.outputs.principalId
+    appName: name
+  }
+}
+
 // Deploy Chunk Video Content Container App
 module chunkVideoContent '../container-app.bicep' = {
   name: 'chunkVideoContentContainerApp'
@@ -148,7 +145,7 @@ module chunkVideoContent '../container-app.bicep' = {
     tags: tags
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: containerRegistry.outputs.loginServer
+    containerRegistryLoginServer: containerRegistryLoginServer
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
     secrets: {
@@ -214,4 +211,3 @@ output resourceId string = chunkVideoContent.outputs.resourceId
 output identityPrincipalId string = identity.outputs.principalId
 output identityResourceId string = identity.outputs.resourceId
 output identityClientId string = identity.outputs.clientId
-output containerRegistryName string = containerRegistry.outputs.name

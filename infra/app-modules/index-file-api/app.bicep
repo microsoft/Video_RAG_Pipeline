@@ -28,6 +28,12 @@ param storageAccountNameParam string
 @description('Blob container name') 
 param blobContainerNameParam string
 
+@description('Container registry login server')
+param containerRegistryLoginServer string
+
+@description('Container registry name')
+param containerRegistryName string
+
 var keyVaultName = '${abbrs.keyVaultVaults}${resourceToken}-ifa' // shortened index-file-api because of a length limit
 
 // Create managed identities for the container apps
@@ -39,24 +45,16 @@ module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1
   }
 }
 
-// Create container registry for this app with direct role assignment
-module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
-  name: 'index-file-api-registry'
+// Grant ACR Pull permissions to the identity on the shared container registry
+module containerRegistryAccess '../roles/acr-pull-role.bicep' = {
+  name: 'index-file-api-acr-access'
   params: {
-    name: '${abbrs.containerRegistryRegistries}index${resourceToken}'
-    location: location
-    tags: tags
-    acrAdminUserEnabled: true
-    publicNetworkAccess: 'Enabled'
-    roleAssignments: [
-      {
-        principalId: identity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
-      }
-    ]
+    containerRegistryName: containerRegistryName
+    principalId: identity.outputs.principalId
+    appName: name
   }
 }
+
 // Deploy Index File API Container App
 module indexFileApi '../container-app.bicep' = {
   name: 'indexFileApiContainerApp'
@@ -66,7 +64,7 @@ module indexFileApi '../container-app.bicep' = {
     tags: tags
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: containerRegistry.outputs.loginServer
+    containerRegistryLoginServer: containerRegistryLoginServer
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
     secrets: {
@@ -110,6 +108,7 @@ module indexFileApi '../container-app.bicep' = {
   dependsOn: [
     keyVaultSecretUserRole    // Ensure Key Vault Secret User role exists
     indexFileQueue        // Ensure the index-file queue exists
+    containerRegistryAccess   // Ensure ACR pull rights are granted
   ]
 }
 
@@ -175,4 +174,3 @@ output resourceId string = indexFileApi.outputs.resourceId
 output identityPrincipalId string = identity.outputs.principalId
 output identityResourceId string = identity.outputs.resourceId
 output identityClientId string = identity.outputs.clientId
-output containerRegistryName string = containerRegistry.outputs.name

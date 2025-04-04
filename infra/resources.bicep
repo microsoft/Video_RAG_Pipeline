@@ -45,6 +45,8 @@ module chunkVideoContentApp './app-modules/chunk-video-content/app.bicep' = {
     storageAccountName: coreInfra.outputs.storageAccountName
     blobContainerName: coreInfra.outputs.blobContainerName
     cognitiveServicesAccountName: aiServices.outputs.cognitiveServicesAccountName
+    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
+    containerRegistryName: coreInfra.outputs.containerRegistryName
     abbrs: abbrs
     resourceToken: resourceToken
   }
@@ -60,6 +62,8 @@ module indexFileApiApp './app-modules/index-file-api/app.bicep' = {
     serviceBusNamespaceName: serviceBusInfra.outputs.serviceBusNamespaceName
     storageAccountNameParam: coreInfra.outputs.storageAccountName
     blobContainerNameParam: coreInfra.outputs.blobContainerName
+    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
+    containerRegistryName: coreInfra.outputs.containerRegistryName
     abbrs: abbrs
     resourceToken: resourceToken
   }
@@ -77,6 +81,8 @@ module summarizeVideoContentApp './app-modules/summarize-video-content/app.bicep
     blobContainerName: coreInfra.outputs.blobContainerName
     cognitiveServicesAccountName: aiServices.outputs.cognitiveServicesAccountName
     openAiDeploymentName: aiServices.outputs.gpt4oDeploymentName
+    containerRegistryLoginServer: coreInfra.outputs.containerRegistryLoginServer
+    containerRegistryName: coreInfra.outputs.containerRegistryName
     abbrs: abbrs
     resourceToken: resourceToken
   }
@@ -94,8 +100,10 @@ module aiServices './modules/ai-services.bicep' = {
     gpt4oDeploymentName: 'gpt-4o'
     gpt4oModelName: 'gpt-4o'
     gpt4oModelVersion: '2024-05-13'
+    ApiVersion: azureOpenaiApiVersion
     aiFoundryProjectName: '${abbrs.machineLearningServicesWorkspaces}${resourceToken}-project'
     aiFoundryProjectDisplayName: 'Video RAG Pipeline Project'
+    containerRegistryResourceId: coreInfra.outputs.containerRegistryResourceId
     abbrs: abbrs
   }
 }

@@ -25,6 +25,12 @@ param cognitiveServicesAccountName string = ''
 @description('OpenAI deployment name')
 param openAiDeploymentName string = ''
 
+@description('Container Registry Login Server')
+param containerRegistryLoginServer string
+
+@description('Container Registry Name')
+param containerRegistryName string
+
 @description('Resource token for unique resource naming')
 param resourceToken string
 
@@ -45,24 +51,6 @@ module identity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1
   }
 }
 
-// Create container registry for this app with direct role assignment
-module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
-  name: 'summarize-video-content-registry'
-  params: {
-    name: '${abbrs.containerRegistryRegistries}${resourceToken}'
-    location: location
-    tags: tags
-    acrAdminUserEnabled: true
-    publicNetworkAccess: 'Enabled'
-    roleAssignments: [
-      {
-        principalId: identity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
-      }
-    ]
-  }
-}
 
 // Deploy Key Vault without inline secrets
 module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
@@ -72,6 +60,16 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.6.1' = {
     location: location
     tags: tags
     enableRbacAuthorization: true
+  }
+}
+
+// Grant AcrPull role to the identity on the container registry
+module acrPullRole '../roles/acr-pull-role.bicep' = {
+  name: '${name}-acr-pull-role'
+  params: {
+    containerRegistryName: containerRegistryName
+    principalId: identity.outputs.principalId
+    appName: name
   }
 }
 
@@ -162,7 +160,7 @@ module summarizeVideoContent '../container-app.bicep' = {
     tags: tags
     applicationInsightsResourceId: applicationInsightsResourceId
     containerAppsEnvironmentResourceId: containerAppsEnvironmentResourceId
-    containerRegistryLoginServer: containerRegistry.outputs.loginServer
+    containerRegistryLoginServer: containerRegistryLoginServer
     identityResourceId: identity.outputs.resourceId
     identityClientId: identity.outputs.clientId
     secrets: {
@@ -260,4 +258,3 @@ output resourceId string = summarizeVideoContent.outputs.resourceId
 output identityPrincipalId string = identity.outputs.principalId
 output identityResourceId string = identity.outputs.resourceId
 output identityClientId string = identity.outputs.clientId
-output containerRegistryName string = containerRegistry.outputs.name
