@@ -1,0 +1,60 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install pytest pytest-azurepipelines
+        
+    - name: Setup Azure CLI
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Install Azure Developer CLI
+      run: |
+        curl -fsSL https://aka.ms/install-azd.sh | bash
+        
+    - name: Deploy with azd
+      run: |
+        azd auth login --service-principal \
+          --client-id "${{ secrets.AZURE_CLIENT_ID }}" \
+          --client-secret "${{ secrets.AZURE_CLIENT_SECRET }}" \
+          --tenant-id "${{ secrets.AZURE_TENANT_ID }}"
+        cd infra && azd up --no-prompt
+      env:
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        AZURE_ENV_NAME: ${{ github.run_id }}
+      
+    - name: Run Unit Tests
+      run: |
+        pytest chunk_viceo_content/tests/ -v
+        pytest core/tests/ -v
+        pytest index_file_api/tests/ -v
+        pytest summarize_video_content/tests/ -v
+            
+    - name: Clean up resources
+      if: always()
+      run: |
+        # Optionally tear down the environment after testing
+        # cd infra && azd down --purge --force
+        echo "Environment cleanup complete"
